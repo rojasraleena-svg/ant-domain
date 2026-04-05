@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getStageLabel } from "@/lib/labels";
+import { deleteColony } from "./actions";
 
 export const metadata = {
   title: "我的蚁群",
@@ -79,16 +80,37 @@ export default async function ColoniesPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {colonies.map((colony) => (
-            <Link
+            <div
               key={colony.id}
-              href={`/colonies/${colony.id}`}
               className="group card-hover rounded-2xl border bg-card p-5 sm:p-6 relative overflow-hidden"
             >
               {/* 左侧装饰条 */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-accent-warm rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-              <div className="pl-3">
-                <div className="flex items-start justify-between">
+              {/* 删除按钮 */}
+              <form
+                action={async () => {
+                  "use server";
+                  await deleteColony(String(colony.id));
+                }}
+                className="absolute top-3 right-3 z-10"
+              >
+                <button
+                  type="submit"
+                  onClick={(e) => {
+                    if (!window.confirm(`确定要删除「${colony.name}」吗？\n删除后将无法恢复，所有关联日志也会被清除。`)) {
+                      e.preventDefault();
+                    }
+                  }}
+                  title="删除蚁群"
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground/40 hover:text-destructive hover:bg-destructive/8 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                </button>
+              </form>
+
+              <Link href={`/colonies/${colony.id}`} className="block pl-3">
+                <div className="flex items-start justify-between pr-8">
                   <div>
                     <h3 className="font-bold group-hover:text-primary transition-colors duration-200 tracking-tight">
                       {colony.name}
@@ -118,8 +140,8 @@ export default async function ColoniesPage() {
                     </>
                   )}
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}

@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateColonyAdvice } from "@/lib/ai";
 import { getStageLabel, getAbnormalLabel } from "@/lib/labels";
+import { deleteColony } from "../actions";
 
 export default async function ColonyDetailPage({
   params,
@@ -96,6 +97,29 @@ export default async function ColonyDetailPage({
             {colony.queen_count > 1 && (
               <span>{colony.queen_count} 蚁后</span>
             )}
+          </div>
+
+          {/* 删除按钮 */}
+          <div className="mt-4 pt-4 border-t border-border/50">
+            <form
+              action={async () => {
+                "use server";
+                await deleteColony(id);
+              }}
+            >
+              <button
+                type="submit"
+                onClick={(e) => {
+                  if (!window.confirm("确定要删除这个蚁群吗？\n删除后将无法恢复，所有关联日志也会被清除。")) {
+                    e.preventDefault();
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-medium text-destructive bg-destructive/6 border border-destructive/15 hover:bg-destructive/10 hover:border-destructive/25 transition-all duration-200"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>
+                删除蚁群
+              </button>
+            </form>
           </div>
         </div>
       </div>
