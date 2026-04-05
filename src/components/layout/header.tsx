@@ -12,18 +12,22 @@ const navItems = [
   { href: "/colonies", label: "我的蚁群" },
 ];
 
-/* 蚂蚁 Logo SVG */
+/* 蚂蚁 Logo SVG — 填充版 */
 function AntLogo({ className = "w-6 h-6" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1.8" />
-      <ellipse cx="16" cy="21" rx="7.5" ry="4.5" stroke="currentColor" strokeWidth="1.8" />
+      {/* 身体填充 */}
+      <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.9" />
+      <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.9" />
+      {/* 头部高光 */}
+      <circle cx="14.5" cy="10.5" r="1.5" fill="white" opacity="0.25" />
       {/* 触角 */}
-      <path d="M13 7 Q10 3 8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-      <path d="M19 7 Q22 3 24 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-      {/* 腿 */}
-      <path d="M9 19 L5 24 M9 20 L4 22 M9 21 L6 26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M23 19 L27 24 M23 20 L28 22 M23 21 L26 26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      <path d="M13 7.5 Q10 2.5 7.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      <path d="M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      {/* 腿 — 左侧 */}
+      <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+      {/* 腿 — 右侧 */}
+      <path d="M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   );
 }

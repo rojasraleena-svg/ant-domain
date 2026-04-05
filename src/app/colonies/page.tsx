@@ -49,18 +49,18 @@ export default async function ColoniesPage() {
           {/* 装饰 */}
           <div className="absolute inset-0 pointer-events-none opacity-30" aria-hidden="true">
             <svg className="absolute top-8 right-8 w-20 h-20 text-primary/10" viewBox="0 0 32 32" fill="none">
-              <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1" />
-              <ellipse cx="16" cy="21" rx="7.5" ry="4.5" stroke="currentColor" strokeWidth="1" />
+              <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.4" />
+              <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.4" />
             </svg>
           </div>
 
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-primary/8 flex items-center justify-center mx-auto mb-5">
               <svg className="w-8 h-8 text-primary/40" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1.5" />
-                <ellipse cx="16" cy="21" rx="7.5" ry="4.5" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M13 7 Q10 3 8 5 M19 7 Q22 3 24 5" stroke="currentColor" strokeWidth="1" strokeLinecap="round" fill="none" />
-                <path d="M9 19 L5 24 M9 20 L4 22 M9 21 L6 26 M23 19 L27 24 M23 20 L28 22 M23 21 L26 26" stroke="currentColor" strokeWidth="1" strokeLinecap="round" />
+                <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.6" />
+                <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.6" />
+                <path d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.3" />
+                <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.3" />
               </svg>
             </div>
             <p className="text-lg font-bold text-foreground/80 mb-2">还没有蚁群</p>

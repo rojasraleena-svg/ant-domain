@@ -11,13 +11,11 @@ export const metadata = {
 /* 装饰性蚂蚁 SVG */
 function AntDecorative() {
   return (
-    <svg className="w-10 h-10 text-primary/20" viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1.2" />
-      <ellipse cx="16" cy="21" rx="7.5" ry="4.5" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M13 7 Q10 3 8 5" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-      <path d="M19 7 Q22 3 24 5" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" fill="none" />
-      <path d="M9 19 L5 24 M9 20 L4 22 M9 21 L6 26" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
-      <path d="M23 19 L27 24 M23 20 L28 22 M23 21 L26 26" stroke="currentColor" strokeWidth="0.8" strokeLinecap="round" />
+    <svg className="w-10 h-10 text-primary/25" viewBox="0 0 32 32" fill="none">
+      <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.6" />
+      <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.6" />
+      <path d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
+      <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
     </svg>
   );
 }
@@ -50,12 +48,11 @@ export default async function LoginPage({
           <div className="mb-8 text-center">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/8 mb-4">
               <svg className="w-7 h-7 text-primary" viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="11" r="5" stroke="currentColor" strokeWidth="1.8" />
-                <ellipse cx="16" cy="21" rx="7.5" ry="4.5" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M13 7 Q10 3 8 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M19 7 Q22 3 24 5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none" />
-                <path d="M9 19 L5 24 M9 20 L4 22 M9 21 L6 26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                <path d="M23 19 L27 24 M23 20 L28 22 M23 21 L26 26" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.9" />
+                <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.9" />
+                <circle cx="14.5" cy="10.5" r="1.5" fill="white" opacity="0.25" />
+                <path d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
               </svg>
             </div>
             <h1 className="text-2xl font-bold tracking-tight">欢迎回来</h1>
