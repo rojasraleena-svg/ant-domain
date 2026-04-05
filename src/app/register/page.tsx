@@ -29,7 +29,7 @@ export default async function RegisterPage({
         </div>
 
         {message && (
-          <div className="mb-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="mb-4 rounded-xl bg-destructive/8 border border-destructive/15 p-3.5 text-sm text-destructive animate-[fadeInUp_0.3s_ease-out]">
             {message}
           </div>
         )}
@@ -41,52 +41,36 @@ export default async function RegisterPage({
             const password = formData.get("password") as string;
             const confirmPassword = formData.get("confirmPassword") as string;
 
-            // 校验用户名
             if (!username || username.length < 2) {
-              return redirect(
-                `/register?message=${encodeURIComponent("用户名至少需要2个字符")}`
-              );
+              redirect(`/register?message=${encodeURIComponent("用户名至少需要2个字符")}`);
             }
             if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
-              return redirect(
-                `/register?message=${encodeURIComponent("用户名只能包含字母、数字、下划线和中文")}`
-              );
+              redirect(`/register?message=${encodeURIComponent("用户名只能包含字母、数字、下划线和中文")}`);
             }
-
-            // 校验密码
             if (password.length < 6) {
-              return redirect(
-                `/register?message=${encodeURIComponent("密码至少需要6个字符")}`
-              );
+              redirect(`/register?message=${encodeURIComponent("密码至少需要6个字符")}`);
             }
             if (password !== confirmPassword) {
-              return redirect(
-                `/register?message=${encodeURIComponent("两次输入的密码不一致")}`
-              );
+              redirect(`/register?message=${encodeURIComponent("两次输入的密码不一致")}`);
             }
 
             // 创建用户（利用数据库唯一约束处理并发）
             const passwordHash = await hashPassword(password);
-            const { data: inserted, error } = await db
+            const { error } = await db
               .from("users")
               .insert({ username, password_hash: passwordHash })
               .select("id")
               .single();
 
             if (error) {
-              // 唯一约束冲突 → 用户名已被占用
               if (
                 error.code === "23505" ||
                 error.message?.includes("unique") ||
                 error.message?.includes("duplicate")
               ) {
-                return redirect(
-                  `/register?message=${encodeURIComponent("该用户名已被使用")}`
-                );
+                redirect(`/register?message=${encodeURIComponent("该用户名已被使用")}`);
               }
-              return redirect(
-                `/register?message=${encodeURIComponent("注册失败，请稍后重试")}`
-              );
+              redirect(`/register?message=${encodeURIComponent("注册失败，请稍后重试")}`);
             }
 
             redirect("/login?message=注册成功，请登录");
@@ -94,10 +78,7 @@ export default async function RegisterPage({
           className="space-y-4"
         >
           <div>
-            <label
-              htmlFor="username"
-              className="block text-sm font-medium mb-1.5"
-            >
+            <label htmlFor="username" className="block text-sm font-medium mb-1.5 text-foreground/80">
               用户名
             </label>
             <input
@@ -108,16 +89,13 @@ export default async function RegisterPage({
               placeholder="2-20 位，支持中英文和数字"
               minLength={2}
               maxLength={20}
-              className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+              className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
               autoComplete="username"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium mb-1.5"
-            >
+            <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground/80">
               密码
             </label>
             <input
@@ -127,16 +105,13 @@ export default async function RegisterPage({
               required
               placeholder="至少 6 个字符"
               minLength={6}
-              className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+              className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
               autoComplete="new-password"
             />
           </div>
 
           <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium mb-1.5"
-            >
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1.5 text-foreground/80">
               确认密码
             </label>
             <input
@@ -146,14 +121,14 @@ export default async function RegisterPage({
               required
               placeholder="再次输入密码"
               minLength={6}
-              className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+              className="w-full rounded-lg border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
               autoComplete="new-password"
             />
           </div>
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-primary py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
           >
             注册
           </button>
@@ -161,7 +136,7 @@ export default async function RegisterPage({
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           已有账号？{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/login" className="text-primary font-medium hover:text-primary-dark transition-colors">
             登录
           </Link>
         </p>

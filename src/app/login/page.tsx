@@ -31,22 +31,18 @@ export default async function LoginPage({
   const { message } = await searchParams;
 
   return (
-    <div className="min-h-[calc(100vh-3.75rem)] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-warm">
+    <div className="min-h-[calc(100vh-3.75rem)] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-warm pattern-dots">
       {/* 背景装饰 */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-1/4 -left-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute bottom-1/4 -right-20 w-56 h-56 rounded-full bg-accent-warm/5 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <AntDecorative />
-        </div>
+        <div className="absolute bottom-1/3 -right-10 w-40 h-40 rounded-full bg-accent-warm/5 blur-2xl" />
+        <div className="absolute top-1/2 left-1/2"><AntDecorative /></div>
       </div>
 
       <div className="relative w-full max-w-sm animate-[scaleIn_0.4s_ease-out]">
-        {/* 玻璃拟态卡片 */}
-        <div className="glass rounded-2xl p-8 sm:p-9 shadow-xl shadow-earth-brown/5">
-          {/* 品牌区 */}
+        <div className="glass rounded-2xl p-8 sm:p-10 shadow-xl shadow-earth-brown/5">
           <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/8 mb-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/8 text-primary mb-4">
               <svg className="w-7 h-7 text-primary" viewBox="0 0 32 32" fill="none">
                 <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.9" />
                 <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.9" />
@@ -56,19 +52,13 @@ export default async function LoginPage({
               </svg>
             </div>
             <h1 className="text-2xl font-bold tracking-tight">欢迎回来</h1>
-            <p className="mt-1.5 text-sm text-muted-foreground">
-              登录蚁域，管理你的蚂蚁世界
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">登录蚁域，管理你的蚂蚁世界</p>
           </div>
 
-          {/* 错误提示 */}
           {message && (
-            <div className="mb-5 rounded-xl bg-destructive/8 border border-destructive/15 p-3.5 text-sm text-destructive animate-[fadeInUp_0.3s_ease-out]">
-              {message}
-            </div>
+            <div className="mb-6 rounded-xl bg-destructive/8 border border-destructive/15 p-4 text-sm text-destructive animate-[fadeInUp_0.3s_ease-out]">{message}</div>
           )}
 
-          {/* 表单 */}
           <form
             action={async (formData) => {
               "use server";
@@ -76,7 +66,7 @@ export default async function LoginPage({
               const password = formData.get("password") as string;
 
               if (!username || !password) {
-                return redirect(`/login?message=${encodeURIComponent("请填写用户名和密码")}`);
+                redirect(`/login?message=${encodeURIComponent("请填写用户名和密码")}`);
               }
 
               const { data: user, error } = await db
@@ -86,25 +76,22 @@ export default async function LoginPage({
                 .single();
 
               if (error || !user) {
-                return redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+                redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
               }
 
               const valid = await verifyPassword(password, user.password_hash);
               if (!valid) {
-                return redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+                redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
               }
 
               const token = await signToken({ id: user.id, username: user.username });
               await setAuthCookie(token);
               redirect("/colonies");
             }}
-            className="space-y-4"
+            className="space-y-5"
           >
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium mb-2 text-foreground/80"
-              >
+              <label htmlFor="username" className="block text-sm font-medium mb-2 text-foreground/80">
                 用户名
               </label>
               <input
@@ -114,15 +101,12 @@ export default async function LoginPage({
                 required
                 placeholder="输入用户名"
                 autoComplete="username"
-                className="input-glow w-full rounded-xl border bg-background/70 px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 transition-all duration-200"
+                className="w-full rounded-xl border bg-background/70 px-4 py-2.5 text-sm input-glow transition-all duration-200"
               />
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium mb-2 text-foreground/80"
-              >
+              <label htmlFor="password" className="block text-sm font-medium mb-2 text-foreground/80">
                 密码
               </label>
               <input
@@ -132,19 +116,18 @@ export default async function LoginPage({
                 required
                 placeholder="输入密码"
                 autoComplete="current-password"
-                className="input-glow w-full rounded-xl border bg-background/70 px-4 py-2.5 text-sm placeholder:text-muted-foreground/50 transition-all duration-200"
+                className="w-full rounded-xl border bg-background/70 px-4 py-2.5 text-sm input-glow transition-all duration-200"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-dark shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
+              className="w-full rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
             >
               登录
             </button>
           </form>
 
-          {/* 注册链接 */}
           <p className="mt-6 text-center text-sm text-muted-foreground">
             还没有账号？{" "}
             <Link href="/register" className="text-primary font-medium hover:text-primary-dark transition-colors">
