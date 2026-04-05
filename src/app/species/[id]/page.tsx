@@ -1,37 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSpeciesById } from "@/lib/public-data";
-
-function getDietLabel(diet: string | null): string {
-  if (!diet) return "";
-  const map: Record<string, string> = {
-    omnivore: "杂食性",
-    carnivore: "肉食性",
-    sugar_feeder: "甜食偏好",
-  };
-  return map[diet] || diet;
-}
-
-const nestTypeMap: Record<string, string> = {
-  test_tube: "试管",
-  gypsum: "石膏板",
-  plaster: "石膏",
-  acrylic: "亚克力",
-  "3d_printed": "3D 打印",
-  plant: "生态缸/植物巢",
-  nesting: "正在筑巢中",
-};
-
-function getNestTypeLabel(nestType: string | null): string {
-  if (!nestType) return "";
-  // 先尝试整体匹配
-  if (nestTypeMap[nestType]) return nestTypeMap[nestType];
-  // 按空格分隔逐个翻译
-  return nestType
-    .split(/\s*\/\s*/)
-    .map((t) => nestTypeMap[t.trim()] || t.trim())
-    .join(" / ");
-}
+import { getDietLabel, getNestTypeLabel } from "@/lib/labels";
 
 export async function generateMetadata({
   params,

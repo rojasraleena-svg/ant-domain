@@ -2,7 +2,11 @@ import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "ant-domain-secret-key-change-in-production"
+  process.env.JWT_SECRET ||
+    (() => {
+      console.warn("JWT_SECRET 未设置，使用开发默认值（生产环境必须配置）");
+      return "ant-domain-dev-secret";
+    })()
 );
 
 export interface SessionUser {

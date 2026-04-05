@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateColonyAdvice } from "@/lib/ai";
+import { getStageLabel, getAbnormalLabel } from "@/lib/labels";
 
 export default async function ColonyDetailPage({
   params,
@@ -76,7 +77,7 @@ export default async function ColonyDetailPage({
             </div>
             {colony.current_stage && (
               <span className="rounded-full bg-primary/10 text-primary border border-primary/15 px-3.5 py-1 text-sm font-semibold whitespace-nowrap">
-                {colony.current_stage}
+                {getStageLabel(colony.current_stage)}
               </span>
             )}
           </div>
@@ -152,7 +153,7 @@ export default async function ColonyDetailPage({
                     </span>
                     {log.event_type && (
                       <span className="text-[10px] rounded-full bg-primary/10 text-primary px-2 py-0.5 font-medium border border-primary/10">
-                        {log.event_type}
+                            {getStageLabel(log.event_type)}
                       </span>
                     )}
                   </div>
@@ -160,7 +161,7 @@ export default async function ColonyDetailPage({
                   {log.abnormal_type && log.abnormal_type !== "none" && (
                     <p className="mt-2 text-destructive text-xs flex items-center gap-1 font-medium">
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-                      检测到异常：{log.abnormal_type}
+                      检测到异常：{getAbnormalLabel(log.abnormal_type)}
                     </p>
                   )}
                 </div>
@@ -300,7 +301,7 @@ export default async function ColonyDetailPage({
                   <div className="flex gap-1.5">
                     {log.stage && (
                       <span className="text-[10px] rounded-full bg-primary/8 text-primary px-2 py-0.5 font-medium border border-primary/10">
-                        {log.stage}
+                        {getStageLabel(log.stage)}
                       </span>
                     )}
                     {log.abnormal_type &&

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getStageLabel } from "@/lib/labels";
 
 export const metadata = {
   title: "我的蚁群",
@@ -113,7 +114,7 @@ export default async function ColoniesPage() {
                   {colony.current_stage && (
                     <>
                       <span className="text-border">·</span>
-                      <span className="text-primary font-medium">{colony.current_stage}</span>
+                      <span className="text-primary font-medium">{getStageLabel(colony.current_stage)}</span>
                     </>
                   )}
                 </div>

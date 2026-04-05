@@ -50,7 +50,8 @@ export default async function NewColonyPage() {
           });
 
           if (error) {
-            redirect(`/colonies/new?message=${encodeURIComponent(error.message)}`);
+            console.error("创建蚁群失败:", error);
+            redirect(`/colonies/new?message=${encodeURIComponent("创建失败，请稍后重试")}`);
           }
 
           redirect("/colonies");

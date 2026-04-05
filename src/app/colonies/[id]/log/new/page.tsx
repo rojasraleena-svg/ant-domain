@@ -104,10 +104,21 @@ export default async function NewLogPage({
           });
 
           if (logError) {
+            console.error("写入日志失败:", logError);
             return redirect(
-              `/colonies/${id}?error=${encodeURIComponent(logError.message)}`
+              `/colonies/${id}?error=${encodeURIComponent("保存失败，请稍后重试")}`
             );
           }
+
+          // 获取刚插入的日志 ID（用于精确更新 AI 摘要）
+          const { data: newLog } = await db
+            .from("colony_logs")
+            .select("id")
+            .eq("colony_id", parseInt(id))
+            .eq("title", title)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
 
           // 2. 调用 AI 生成摘要（异步，失败不阻塞）
           try {
@@ -127,16 +138,16 @@ export default async function NewLogPage({
               abnormalType: abnormalType || undefined,
             });
 
-            // 更新日志的 AI 摘要
-            await db
-              .from("colony_logs")
-              .update({
-                ai_summary: aiResult.summary,
-                event_type: aiResult.inferredStage || undefined,
-              })
-              .eq("colony_id", parseInt(id))
-              .order("created_at", { ascending: false })
-              .limit(1);
+            // 更新日志的 AI 摘要（使用精确 ID）
+            if (newLog) {
+              await db
+                .from("colony_logs")
+                .update({
+                  ai_summary: aiResult.summary,
+                  event_type: aiResult.inferredStage || undefined,
+                })
+                .eq("id", newLog.id);
+            }
 
             // 如果 AI 推断出新阶段，更新蚁群的当前阶段
             if (
