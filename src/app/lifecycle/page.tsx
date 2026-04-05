@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllLifeStages, getLifecycleGenera } from "@/lib/public-data";
+import { getAllLifeStages, getLifecycleGenera, getGenusCnName } from "@/lib/public-data";
 import {
   Plane,
   Home,
@@ -38,13 +38,12 @@ interface LifecyclePageProps {
 
 export default async function LifecyclePage({ searchParams }: LifecyclePageProps) {
   const { genus: selectedGenus = "Camponotus" } = await searchParams;
-  const [allStages, genera] = await Promise.all([
+  const [stages, genera] = await Promise.all([
     getAllLifeStages(),
     getLifecycleGenera(),
   ]);
 
-  const stages = allStages.filter((s) => s.target_genus === selectedGenus);
-  const currentGenusName = genera.find((g) => g.genus === selectedGenus)?.name || selectedGenus;
+  const currentGenusName = getGenusCnName(selectedGenus);
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">

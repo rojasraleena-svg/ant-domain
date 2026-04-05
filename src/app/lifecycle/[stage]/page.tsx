@@ -5,18 +5,9 @@ import {
   getLifeStageByKey,
   getLifecycleGenera,
   getStageDiff,
+  getGenusCnName,
 } from "@/lib/public-data";
 import { AlertTriangle, ArrowRightLeft, ChevronRight } from "lucide-react";
-
-const genusCnMap: Record<string, string> = {
-  Camponotus: "弓背蚁属",
-  Polyrhachis: "多刺蚁属",
-  Formica: "蚁属",
-  Lasius: "毛蚁属",
-  Paratrechina: "立毛蚁属",
-  Oecophylla: "织叶蚁属",
-  Plagiolepis: "矮蚁属",
-};
 
 export async function generateMetadata({
   params,
@@ -31,7 +22,7 @@ export async function generateMetadata({
 
   try {
     const data = await getLifeStageByKey(key);
-    const gn = genusCnMap[genus] || genus;
+    const gn = getGenusCnName(genus);
     return {
       title: `${data.name} - ${gn}生活史`,
       description: `${gn} ${data.name} 阶段详解`,
@@ -61,7 +52,7 @@ export default async function LifecycleStagePage({
     notFound();
   }
 
-  const [allStages, genera, stageDiff] = await Promise.all([
+  const [stages, genera, stageDiff] = await Promise.all([
     getAllLifeStages(),
     getLifecycleGenera(),
     selectedGenus !== "Camponotus"
@@ -69,15 +60,11 @@ export default async function LifecycleStagePage({
       : Promise.resolve(null),
   ]);
 
-  const genusStages = allStages.filter((s) => s.target_genus === selectedGenus);
-  const currentIndex = genusStages.findIndex((s) => s.stage_key === key);
-  const prevStage = currentIndex > 0 ? genusStages[currentIndex - 1] : null;
+  const currentIndex = stages.findIndex((s) => s.stage_key === key);
+  const prevStage = currentIndex > 0 ? stages[currentIndex - 1] : null;
   const nextStage =
-    currentIndex < genusStages.length - 1
-      ? genusStages[currentIndex + 1]
-      : null;
-  const currentGenusName =
-    genusCnMap[selectedGenus] || selectedGenus;
+    currentIndex < stages.length - 1 ? stages[currentIndex + 1] : null;
+  const currentGenusName = getGenusCnName(selectedGenus);
   const isBaseGenus = selectedGenus === "Camponotus";
 
   return (
@@ -128,7 +115,7 @@ export default async function LifecycleStagePage({
           <h1 className="text-3xl font-bold">{stage.name}</h1>
           <p className="mt-1 text-muted-foreground">
             {currentGenusName}（{selectedGenus}）· 阶段{" "}
-            {currentIndex + 1} / {genusStages.length}
+            {currentIndex + 1} / {stages.length}
             {stage.milestone && (
               <span
                 className="ml-2 text-xs px-2 py-0.5 rounded-full text-white"

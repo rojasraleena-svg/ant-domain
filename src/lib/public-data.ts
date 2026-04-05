@@ -97,47 +97,44 @@ export async function getPrimarySpecimenImage(speciesId: number) {
   return data;
 }
 
-// 获取所有支持生活史的属列表（从 life_stages 中去重 target_genus）
-export async function getLifecycleGenera() {
-  const { data, error } = await publicDb
-    .from("life_stages")
-    .select("target_genus");
+const GENUS_CN_MAP: Record<string, string> = {
+  Camponotus: "弓背蚁属",
+  Polyrhachis: "多刺蚁属",
+  Formica: "蚁属",
+  Lasius: "毛蚁属",
+  Paratrechina: "立毛蚁属",
+  Oecophylla: "织叶蚁属",
+  Plagiolepis: "矮蚁属",
+};
 
-  if (error) throw error;
-
-  const genusMap = new Map<string, string>();
-  const genusCnMap: Record<string, string> = {
-    Camponotus: "弓背蚁属",
-    Polyrhachis: "多刺蚁属",
-    Formica: "蚁属",
-    Lasius: "毛蚁属",
-    Paratrechina: "立毛蚁属",
-    Oecophylla: "织叶蚁属",
-    Plagiolepis: "矮蚁属",
-  };
-
-  for (const row of data) {
-    if (!genusMap.has(row.target_genus)) {
-      genusMap.set(row.target_genus, genusCnMap[row.target_genus] || row.target_genus);
-    }
-  }
-
-  return Array.from(genusMap.entries()).map(([genus, name]) => ({
-    genus,
-    name,
-  }));
+export function getGenusCnName(genus: string): string {
+  return GENUS_CN_MAP[genus] || genus;
 }
 
-// 按属获取所有生活史阶段
-export async function getLifeStagesByGenus(genus: string) {
-  const { data, error } = await publicDb
-    .from("life_stages")
-    .select("*")
-    .eq("target_genus", genus)
-    .order("order_index", { ascending: true });
+// 获取所有支持生活史的属列表（基准属 + 有差异数据的属）
+export async function getLifecycleGenera() {
+  const { data: diffs, error } = await publicDb
+    .from("stage_species_diffs")
+    .select("genus");
 
   if (error) throw error;
-  return data;
+
+  const genusSet = new Set<string>();
+  genusSet.add("Camponotus");
+
+  for (const row of diffs) {
+    genusSet.add(row.genus);
+  }
+
+  return Array.from(genusSet)
+    .sort((a, b) => {
+      const order = ["Camponotus", "Polyrhachis", "Formica", "Lasius", "Paratrechina", "Oecophylla", "Plagiolepis"];
+      return order.indexOf(a) - order.indexOf(b);
+    })
+    .map((genus) => ({
+      genus,
+      name: GENUS_CN_MAP[genus] || genus,
+    }));
 }
 
 // 获取某阶段在某属的差异化信息
