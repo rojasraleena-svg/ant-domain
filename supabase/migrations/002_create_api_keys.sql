@@ -4,10 +4,15 @@
 -- ============================================
 
 -- ============================================
+-- 0. 启用 uuid 生成函数
+-- ============================================
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ============================================
 -- 1. 创建 api_keys 表
 -- ============================================
 CREATE TABLE IF NOT EXISTS api_keys (
-  id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name        TEXT NOT NULL,
   key_hash    TEXT UNIQUE NOT NULL,
   user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
