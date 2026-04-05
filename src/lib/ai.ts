@@ -7,6 +7,7 @@ import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  baseURL: process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com",
 });
 
 /** 日志摘要请求参数 */
@@ -74,7 +75,7 @@ export async function summarizeLog(
   const userMessage = formatLogForAI(input);
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL || "glm-5v-turbo",
     max_tokens: 500,
     system: [{ type: "text", text: systemPrompt }],
     messages: [{ role: "user", content: userMessage }],
@@ -142,7 +143,7 @@ ${input.currentStage ? `当前阶段：${input.currentStage}` : ""}
 ${logText}`;
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL || "glm-5v-turbo",
     max_tokens: 800,
     system: [{ type: "text", text: systemPrompt }],
     messages: [{ role: "user", content: userMessage }],
@@ -180,7 +181,7 @@ export async function generateColonyAdvice(
     : "暂无日志";
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: process.env.ANTHROPIC_MODEL || "glm-5v-turbo",
     max_tokens: 300,
     system: [{ type: "text", text: systemPrompt }],
     messages: [

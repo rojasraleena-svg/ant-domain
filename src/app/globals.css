@@ -15,6 +15,12 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
+  /* 暖棕琥珀系扩展色 */
+  --color-primary-dark: var(--primary-dark);
+  --color-accent-warm: var(--accent-warm);
+  --color-nature-green: var(--nature-green);
+  --color-earth-brown: var(--earth-brown);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -22,40 +28,67 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* 动画 */
+  --animate-fade-in: fadeInUp 0.6s ease-out both;
+  --animate-slide-in-left: slideInLeft 0.5s ease-out both;
+  --animate-slide-in-right: slideInRight 0.5s ease-out both;
+  --animate-scale-in: scaleIn 0.4s ease-out both;
+  --animate-float: float 6s ease-in-out infinite;
 }
 
+/* ============================================
+   暖棕琥珀配色方案 — Light Mode
+   灵感：土壤、蚂蚁体色、琥珀树脂
+   ============================================ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.985 0.003 80);
+  --foreground: oklch(0.18 0.02 50);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.45 0.18 264);
-  --primary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.965 0.001 286);
-  --muted-foreground: oklch(0.556 0.022 286);
-  --accent: oklch(0.965 0.001 286);
-  --border: oklch(0.902 0.006 286);
+  --card-foreground: oklch(0.18 0.02 50);
+  --primary: oklch(0.65 0.15 60);          /* 温暖琥珀色 */
+  --primary-foreground: oklch(0.98 0 0);
+  --primary-dark: oklch(0.52 0.14 50);       /* 深琥珀（按钮hover等） */
+  --muted: oklch(0.955 0.01 70);
+  --muted-foreground: oklch(0.52 0.03 60);
+  --accent: oklch(0.95 0.02 65);
+  --border: oklch(0.89 0.015 60);
   --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.902 0.006 286);
-  --ring: oklch(0.45 0.18 264);
+  --input: oklch(0.89 0.015 60);
+  --ring: oklch(0.65 0.15 60);
+
+  /* 扩展色 */
+  --accent-warm: oklch(0.72 0.12 35);        /* 土橙 */
+  --nature-green: oklch(0.58 0.12 145);      /* 苔藓绿 */
+  --earth-brown: oklch(0.40 0.08 45);        /* 深褐 */
+
   --radius: 0.625rem;
 }
 
+/* ============================================
+   Dark Mode — 暖棕琥珀适配
+   ============================================ */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.65 0.18 264);
-    --primary-foreground: oklch(0.145 0 0);
-    --muted: oklch(0.269 0.007 286);
-    --muted-foreground: oklch(0.708 0.012 286);
-    --accent: oklch(0.269 0.007 286);
-    --border: oklch(0.3 0.007 286);
+    --background: oklch(0.15 0.015 50);
+    --foreground: oklch(0.96 0.005 80);
+    --card: oklch(0.20 0.02 55);
+    --card-foreground: oklch(0.96 0.005 80);
+    --primary: oklch(0.70 0.14 60);
+    --primary-foreground: oklch(0.16 0.02 50);
+    --primary-dark: oklch(0.78 0.13 55);
+    --muted: oklch(0.26 0.02 55);
+    --muted-foreground: oklch(0.68 0.02 60);
+    --accent: oklch(0.26 0.025 55);
+    --border: oklch(0.30 0.025 55);
     --destructive: oklch(0.577 0.245 27.325);
-    --input: oklch(0.3 0.007 286);
-    --ring: oklch(0.65 0.18 264);
+    --input: oklch(0.30 0.025 55);
+    --ring: oklch(0.70 0.14 60);
+
+    /* 扩展色 dark */
+    --accent-warm: oklch(0.68 0.13 35);
+    --nature-green: oklch(0.55 0.10 145);
+    --earth-brown: oklch(0.50 0.08 45);
   }
 }
 
@@ -69,10 +102,231 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* ============================================
+   动画 Keyframes
+   ============================================ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.65 0.15 60 / 0.15); }
+  50% { box-shadow: 0 0 20px 4px oklch(0.65 0.15 60 / 0.08); }
+}
+
+/* ============================================
+   工具类
+   ============================================ */
+
+/* 渐变背景 */
+.bg-gradient-hero {
+  background: linear-gradient(
+    135deg,
+    oklch(0.94 0.03 55) 0%,
+    oklch(0.97 0.02 75) 30%,
+    oklch(0.95 0.025 65) 60%,
+    oklch(0.93 0.035 45) 100%
+  );
+}
+
+.dark .bg-gradient-hero {
+  background: linear-gradient(
+    135deg,
+    oklch(0.18 0.025 50) 0%,
+    oklch(0.17 0.03 55) 40%,
+    oklch(0.19 0.02 45) 100%
+  );
+}
+
+.bg-gradient-warm {
+  background: linear-gradient(
+    135deg,
+    oklch(0.65 0.15 60 / 0.08) 0%,
+    oklch(0.72 0.12 35 / 0.06) 100%
+  );
+}
+
+.dark .bg-gradient-warm {
+  background: linear-gradient(
+    135deg,
+    oklch(0.65 0.15 60 / 0.12) 0%,
+    oklch(0.72 0.12 35 / 0.08) 100%
+  );
+}
+
+/* 文字渐变 */
+.text-gradient {
+  background: linear-gradient(135deg, oklch(0.55 0.16 50), oklch(0.65 0.15 60));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 玻璃拟态 */
+.glass {
+  background: oklch(1 0 0 / 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 0.3);
+}
+
+.dark .glass {
+  background: oklch(0.2 0.02 55 / 0.7);
+  border: 1px solid oklch(1 0 0 / 0.08);
+}
+
+/* 卡片悬浮增强 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 10px 25px -5px oklch(0.4 0.08 45 / 0.12),
+    0 8px 10px -6px oklch(0.4 0.08 45 / 0.08);
+  border-color: oklch(0.65 0.15 60 / 0.3);
+}
+
+/* 页面标题装饰线 */
+.title-deco::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 4px;
+  margin-top: 12px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, oklch(0.65 0.15 60), oklch(0.72 0.12 35 / 0.5));
+}
+
+/* 页面头部左侧装饰条 */
+.page-header-bar {
+  position: relative;
+  padding-left: 16px;
+}
+.page-header-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 4px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, oklch(0.65 0.15 60), oklch(0.72 0.12 35));
+}
+
+/* 输入框聚焦发光 */
+.input-glow:focus {
+  outline: none;
+  border-color: oklch(0.65 0.15 60);
+  box-shadow: 0 0 0 3px oklch(0.65 0.15 60 / 0.15);
+}
+
+/* 骨架屏闪烁 */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.955 0.01 70) 25%,
+    oklch(0.97 0.008 70) 50%,
+    oklch(0.955 0.01 70) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.26 0.02 55) 25%,
+    oklch(0.30 0.02 55) 50%,
+    oklch(0.26 0.02 55) 75%
+  );
+  background-size: 200% 100%;
+}
+
 /* Line clamp utility */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* 导航 active 下划线动画 */
+.nav-link {
+  position: relative;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: oklch(0.65 0.15 60);
+  transition: width 0.25s ease;
+}
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* 装饰性背景图案（蚁路/六边形暗示） */
+.pattern-dots {
+  background-image: radial-gradient(oklch(0.65 0.15 60 / 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.dark .pattern-dots {
+  background-image: radial-gradient(oklch(0.65 0.15 60 / 0.12) 1px, transparent 1px);
 }

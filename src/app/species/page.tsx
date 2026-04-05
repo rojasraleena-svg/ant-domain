@@ -23,11 +23,14 @@ export default async function SpeciesPage({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">资料库</h1>
-        <p className="mt-2 text-muted-foreground">
-          蚁亚科（Formicinae）物种资料 · MVP 阶段
+    <div className="container mx-auto px-4 py-8 sm:py-12">
+      {/* 页面头部 */}
+      <div className="mb-10">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight page-header-bar title-deco">
+          资料库
+        </h1>
+        <p className="mt-4 text-muted-foreground text-base">
+          蚁亚科（Formicinae）物种资料 · 探索蚂蚁的多样性
         </p>
       </div>
 
@@ -35,7 +38,7 @@ export default async function SpeciesPage({
       <SpeciesSearch defaultValue={query} />
 
       {/* 筛选标签 */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-wrap gap-2 mb-8">
         {[
           { label: "全部", tag: "" },
           { label: "新手推荐", tag: "beginner" },
@@ -46,10 +49,10 @@ export default async function SpeciesPage({
           <Link
             key={item.tag}
             href={item.tag ? `/species?tag=${item.tag}` : "/species"}
-            className={`rounded-full border px-3 py-1 text-sm transition-colors hover:bg-accent ${
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 hover:bg-accent ${
               params.tag === item.tag
-                ? "bg-primary text-primary-foreground border-primary"
-                : ""
+                ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/15"
+                : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
             {item.label}
@@ -59,44 +62,54 @@ export default async function SpeciesPage({
 
       {/* 物种列表 */}
       {species.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <p>没有找到匹配的物种</p>
+        <div className="text-center py-16 rounded-2xl border border-dashed">
+          <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+            <svg className="w-7 h-7 text-muted-foreground/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+            </svg>
+          </div>
+          <p className="text-muted-foreground font-medium">没有找到匹配的物种</p>
+          <p className="mt-1 text-sm text-muted-foreground/60">尝试其他关键词或清除筛选条件</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {species.map((sp) => (
+          {species.map((sp, i) => (
             <Link
               key={sp.id}
               href={`/species/${sp.id}`}
-              className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
+              className="group card-hover rounded-2xl border bg-card p-5 sm:p-6 relative overflow-hidden"
+              style={{ animationDelay: `${i * 50}ms` }}
             >
-              <div className="flex items-start justify-between">
+              {/* 左上角装饰点 */}
+              <div className={`absolute top-5 left-5 w-2 h-2 rounded-full transition-colors duration-300 ${sp.beginner_friendly ? "bg-nature-green" : "bg-primary/50"} group-hover:bg-primary`} />
+
+              <div className="flex items-start justify-between pl-4">
                 <div>
-                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                  <h3 className="font-bold group-hover:text-primary transition-colors duration-200 tracking-tight">
                     {sp.name_cn}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5 italic">
+                  <p className="text-sm text-muted-foreground mt-0.5 italic font-light">
                     {sp.name_lat}
                   </p>
                 </div>
                 {sp.beginner_friendly && (
-                  <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 text-xs whitespace-nowrap">
+                  <span className="rounded-full bg-nature-green/10 text-nature-green dark:bg-nature-green/20 dark:text-nature-green/80 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap border border-nature-green/12">
                     新手友好
                   </span>
                 )}
               </div>
               {sp.summary && (
-                <p className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                <p className="mt-3 text-sm line-clamp-2 text-muted-foreground leading-relaxed pl-4">
                   {sp.summary}
                 </p>
               )}
-              <div className="mt-3 flex gap-2 flex-wrap text-xs text-muted-foreground">
+              <div className="mt-3 pt-3 border-t border-border/40 flex gap-2 flex-wrap text-xs text-muted-foreground pl-4">
                 <span>{sp.genus_cn || sp.genus}</span>
-                <span>·</span>
+                <span className="text-border">·</span>
                 <span>{sp.temp_optimal ? `${sp.temp_optimal}°C` : `${sp.temp_min ?? ""}-${sp.temp_max ?? ""}°C`}</span>
                 {sp.need_hibernation && (
                   <>
-                    <span>·</span>
+                    <span className="text-border">·</span>
                     <span>需要冬眠</span>
                   </>
                 )}
@@ -109,7 +122,6 @@ export default async function SpeciesPage({
   );
 }
 
-// 服务端搜索函数（供页面使用）
 async function searchSpecies(query: string) {
   const { createClient } = await import("@supabase/supabase-js");
   const db = createClient(
