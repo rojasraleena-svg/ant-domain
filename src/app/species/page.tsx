@@ -14,10 +14,13 @@ export default async function SpeciesPage({
 }) {
   const params = await searchParams;
   const query = params.q || "";
+  const tag = params.tag || "";
 
   let species;
   if (query) {
     species = await searchSpecies(query);
+  } else if (tag) {
+    species = await filterSpeciesByTag(tag);
   } else {
     species = await getAllSpecies();
   }
@@ -134,6 +137,37 @@ async function searchSpecies(query: string) {
     .eq("status", 1)
     .or(`name_cn.ilike.%${query}%,name_lat.ilike.%${query}%,genus.ilike.%${query}%`)
     .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function filterSpeciesByTag(tag: string) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const db = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  let query = db.from("species").select("*").eq("status", 1);
+
+  switch (tag) {
+    case "beginner":
+      query = query.eq("beginner_friendly", true);
+      break;
+    case "no-hibernation":
+      query = query.eq("need_hibernation", false);
+      break;
+    case "Camponotus":
+      query = query.eq("genus", "Camponotus");
+      break;
+    case "Polyrhachis":
+      query = query.eq("genus", "Polyrhachis");
+      break;
+    default:
+      break;
+  }
+
+  const { data, error } = await query.order("sort_order", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }

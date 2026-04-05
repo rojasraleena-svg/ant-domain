@@ -65,27 +65,25 @@ export default async function RegisterPage({
               );
             }
 
-            // 检查用户名是否已存在
-            const { data: existing } = await db
+            // 创建用户（利用数据库唯一约束处理并发）
+            const passwordHash = await hashPassword(password);
+            const { data: inserted, error } = await db
               .from("users")
+              .insert({ username, password_hash: passwordHash })
               .select("id")
-              .eq("username", username)
               .single();
 
-            if (existing) {
-              return redirect(
-                `/register?message=${encodeURIComponent("该用户名已被使用")}`
-              );
-            }
-
-            // 创建用户
-            const passwordHash = await hashPassword(password);
-            const { error } = await db.from("users").insert({
-              username,
-              password_hash: passwordHash,
-            });
-
             if (error) {
+              // 唯一约束冲突 → 用户名已被占用
+              if (
+                error.code === "23505" ||
+                error.message?.includes("unique") ||
+                error.message?.includes("duplicate")
+              ) {
+                return redirect(
+                  `/register?message=${encodeURIComponent("该用户名已被使用")}`
+                );
+              }
               return redirect(
                 `/register?message=${encodeURIComponent("注册失败，请稍后重试")}`
               );
