@@ -5,6 +5,7 @@ const GBIF_BASE = "https://api.gbif.org/v1/occurrence/search";
 
 /**
  * 从 GBIF API 获取指定物种的标本图片
+ * 优先使用顶层 media 字段（简洁结构），回退到 extensions Multimedia
  * @param {string} scientificName - 物种学名
  * @param {number} limit - 每个物种最大获取图片数
  * @returns {Promise<Array>} 解析后的图片记录数组
@@ -23,49 +24,42 @@ async function fetchGbifImages(scientificName, limit = 15) {
   const images = [];
 
   for (const occ of results) {
-    const media =
-      occ.extensions?.["http://rs.tdwg.org/dwc/terms/Multimedia"];
-    if (!media || !Array.isArray(media) || media.length === 0) continue;
+    let imageUrl = null;
+    let creator = null;
+    let license = null;
 
-    // 取每个 occurrence 的第一张图
-    const img = media[0];
-    const imageUrl = img["http://purl.org/dc/terms/identifier"];
-    if (!imageUrl) continue;
-
-    // 根据标题/描述推断视角类型（启发式）
-    const title = (img["http://purl.org/dc/terms/title"] || "").toLowerCase();
-    let viewType = "dorsal";
-    if (
-      title.includes("lateral") ||
-      title.includes("side") ||
-      title.includes("profile")
-    ) {
-      viewType = "lateral";
-    } else if (
-      title.includes("front") ||
-      title.includes("face") ||
-      title.includes("head")
-    ) {
-      viewType = "frontal";
-    } else if (
-      title.includes("nest") ||
-      title.includes("habitat") ||
-      title.includes("colony")
-    ) {
-      viewType = "habitat";
+    // 优先使用顶层 media 字段（GBIF 简化格式）
+    if (Array.isArray(occ.media) && occ.media.length > 0) {
+      const m = occ.media[0];
+      imageUrl = m.references || m.identifier;
+      creator = m.creator;
+      license = m.license;
+    }
+    // 回退到 extensions Multimedia（Darwin Core 格式）
+    if (!imageUrl) {
+      const extMedia =
+        occ.extensions?.["http://rs.gbif.org/terms/1.0/Multimedia"];
+      if (extMedia && Array.isArray(extMedia) && extMedia.length > 0) {
+        const img = extMedia[0];
+        imageUrl = img["http://purl.org/dc/terms/identifier"];
+        creator =
+          img["http://purl.org/dc/terms/creator"] || occ.recordedBy || null;
+        license = img["http://purl.org/dc/terms/license"] || null;
+      }
     }
 
+    if (!imageUrl) continue;
+
     images.push({
-      species_id: null, // 由调用方填充
+      species_id: null,
       url: imageUrl,
       thumbnail_url: null,
-      view_type: viewType,
-      is_primary: false, // 调用方将第一张设为主图
+      view_type: "dorsal",
+      is_primary: false,
       source: "gbif",
       source_id: String(occ.key),
-      photographer:
-        img["http://purl.org/dc/terms/creator"] || occ.recordedBy || null,
-      license: img["http://purl.org/dc/terms/license"] || null,
+      photographer: creator,
+      license: license,
       dataset_name: occ.datasetName || null,
       country: occ.country || null,
       sort_order: 0,
@@ -127,14 +121,15 @@ async function main() {
         img.species_id = sp.id;
       }
 
-      // Upsert by source_id 避免重复
+      // 先删除该物种旧图片，再插入新数据（保证幂等）
+      await supabase
+        .from("specimen_images")
+        .delete()
+        .eq("species_id", sp.id);
+
       const { error: insertErr } = await supabase
         .from("specimen_images")
-        .upsert(images, {
-          onConflict: "source_id",
-          ignoreDuplicates: true,
-          defaultToNull: false,
-        });
+        .insert(images);
 
       if (insertErr) {
         console.error(
