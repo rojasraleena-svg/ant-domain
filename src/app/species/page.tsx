@@ -1,11 +1,27 @@
 import Link from "next/link";
+import { getAllSpecies } from "@/lib/public-data";
+import { SpeciesSearch } from "./search-bar";
 
 export const metadata = {
   title: "资料库",
   description: "蚁亚科蚂蚁物种资料库",
 };
 
-export default function SpeciesPage() {
+export default async function SpeciesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; tag?: string }>;
+}) {
+  const params = await searchParams;
+  const query = params.q || "";
+
+  let species;
+  if (query) {
+    species = await searchSpecies(query);
+  } else {
+    species = await getAllSpecies();
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -16,118 +32,96 @@ export default function SpeciesPage() {
       </div>
 
       {/* 搜索栏 */}
-      <div className="mb-6">
-        <input
-          type="search"
-          placeholder="搜索物种中文名 / 学名 / 属名..."
-          className="w-full max-w-md rounded-lg border bg-background px-4 py-2 text-sm"
-        />
-      </div>
+      <SpeciesSearch defaultValue={query} />
 
       {/* 筛选标签 */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {["全部", "新手推荐", "无需冬眠", "弓背蚁属", "多刺蚁属"].map(
-          (tag) => (
-            <button
-              key={tag}
-              className="rounded-full border px-3 py-1 text-sm transition-colors hover:bg-accent"
-            >
-              {tag}
-            </button>
-          )
-        )}
+        {[
+          { label: "全部", tag: "" },
+          { label: "新手推荐", tag: "beginner" },
+          { label: "无需冬眠", tag: "no-hibernation" },
+          { label: "弓背蚁属", tag: "Camponotus" },
+          { label: "多刺蚁属", tag: "Polyrhachis" },
+        ].map((item) => (
+          <Link
+            key={item.tag}
+            href={item.tag ? `/species?tag=${item.tag}` : "/species"}
+            className={`rounded-full border px-3 py-1 text-sm transition-colors hover:bg-accent ${
+              params.tag === item.tag
+                ? "bg-primary text-primary-foreground border-primary"
+                : ""
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
 
       {/* 物种列表 */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* TODO: 从 Supabase 加载 species 数据 */}
-        <Link
-          href="/species/1"
-          className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold group-hover:text-primary transition-colors">
-                日本弓背蚁
-              </h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Camponotus japonicus
-              </p>
-            </div>
-            <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs">
-              新手友好
-            </span>
-          </div>
-          <p className="mt-2 text-sm line-clamp-2">
-            国内最常见的入门饲养弓背蚁种类之一，分布广泛，适应性强。
-          </p>
-          <div className="mt-3 flex gap-2 text-xs text-muted-foreground">
-            <span>弓背蚁属</span>
-            <span>·</span>
-            <span>24-28°C</span>
-            <span>·</span>
-            <span>需要冬眠</span>
-          </div>
-        </Link>
-
-        <Link
-          href="/species/2"
-          className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold group-hover:text-primary transition-colors">
-                尼科巴弓背蚁
-              </h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Camponotus nicobarensis
-              </p>
-            </div>
-            <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs">
-              新手友好
-            </span>
-          </div>
-          <p className="mt-2 text-sm line-clamp-2">
-            热门热带弓背蚁，生长速度快，体色美观，全年活跃无需冬眠。
-          </p>
-          <div className="mt-3 flex gap-2 text-xs text-muted-foreground">
-            <span>弓背蚁属</span>
-            <span>·</span>
-            <span>26-30°C</span>
-            <span>·</span>
-            <span>无需冬眠</span>
-          </div>
-        </Link>
-
-        <Link
-          href="/species/7"
-          className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold group-hover:text-primary transition-colors">
-                拟黑多刺蚁
-              </h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Polyrhachis dives
-              </p>
-            </div>
-            <span className="rounded-full bg-green-100 text-green-700 px-2 py-0.5 text-xs">
-              新手友好
-            </span>
-          </div>
-          <p className="mt-2 text-sm line-clamp-2">
-            国产最经典的入门蚂蚁之一，外形独特有金属光泽，繁殖速度快。
-          </p>
-          <div className="mt-3 flex gap-2 text-xs text-muted-foreground">
-            <span>多刺蚁属</span>
-            <span>·</span>
-            <span>25-28°C</span>
-            <span>·</span>
-            <span>无需冬眠</span>
-          </div>
-        </Link>
-      </div>
+      {species.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <p>没有找到匹配的物种</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {species.map((sp) => (
+            <Link
+              key={sp.id}
+              href={`/species/${sp.id}`}
+              className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                    {sp.name_cn}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-0.5 italic">
+                    {sp.name_lat}
+                  </p>
+                </div>
+                {sp.beginner_friendly && (
+                  <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 text-xs whitespace-nowrap">
+                    新手友好
+                  </span>
+                )}
+              </div>
+              {sp.summary && (
+                <p className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                  {sp.summary}
+                </p>
+              )}
+              <div className="mt-3 flex gap-2 flex-wrap text-xs text-muted-foreground">
+                <span>{sp.genus_cn || sp.genus}</span>
+                <span>·</span>
+                <span>{sp.temp_optimal ? `${sp.temp_optimal}°C` : `${sp.temp_min ?? ""}-${sp.temp_max ?? ""}°C`}</span>
+                {sp.need_hibernation && (
+                  <>
+                    <span>·</span>
+                    <span>需要冬眠</span>
+                  </>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
+}
+
+// 服务端搜索函数（供页面使用）
+async function searchSpecies(query: string) {
+  const { createClient } = await import("@supabase/supabase-js");
+  const db = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  const { data, error } = await db
+    .from("species")
+    .select("*")
+    .eq("status", 1)
+    .or(`name_cn.ilike.%${query}%,name_lat.ilike.%${query}%,genus.ilike.%${query}%`)
+    .order("sort_order", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }

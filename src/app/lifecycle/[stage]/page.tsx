@@ -1,31 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-// TODO: 从 Supabase 加载阶段数据
-const stageData: Record<string, { name: string; icon: string; color: string }> = {
-  nuptial_flight: { name: "婚飞", icon: "✈️", color: "#8B5CF6" },
-  nesting: { name: "建巢 / 创群", icon: "🏠", color: "#F59E0B" },
-  egg: { name: "卵期", icon: "🥚", color: "#EF4444" },
-  larva: { name: "幼虫期", icon: "🐛", color: "#F97316" },
-  pupa: { name: "蛹期", icon: "🪲", color: "#EAB308" },
-  first_workers: { name: "第一批工蚁羽化", icon: "🐜", color: "#22C55E" },
-  early_growth: { name: "初级扩群", icon: "📈", color: "#14B8A6" },
-  steady_growth: { name: "稳定增长", icon: "🏗️", color: "#0EA5E9" },
-  mature: { name: "成熟群体", icon: "👑", color: "#6366F1" },
-  hibernation: { name: "季节变化 / 冬眠", icon: "❄️", color: "#94A3B8" },
-};
+import { getLifeStageByKey, getAllLifeStages } from "@/lib/public-data";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ stage: string }>;
 }) {
-  const { stage } = await params;
-  const data = stageData[stage];
-  return {
-    title: data ? `${data.name} - 生活史` : "生活史",
-    description: `弓背蚁 ${data?.name ?? ""} 阶段详解`,
-  };
+  const { stage: key } = await params;
+  try {
+    const data = await getLifeStageByKey(key);
+    return {
+      title: `${data.name} - 生活史`,
+      description: `弓背蚁 ${data.name} 阶段详解`,
+    };
+  } catch {
+    return { title: "生活史", description: "蚁域" };
+  }
 }
 
 export default async function LifecycleStagePage({
@@ -33,57 +24,133 @@ export default async function LifecycleStagePage({
 }: {
   params: Promise<{ stage: string }>;
 }) {
-  const { stage } = await params;
-  const data = stageData[stage];
+  const { stage: key } = await params;
 
-  if (!data) notFound();
+  let stage;
+  try {
+    stage = await getLifeStageByKey(key);
+  } catch {
+    notFound();
+  }
+
+  const allStages = await getAllLifeStages();
+  const currentIndex = allStages.findIndex((s) => s.stage_key === key);
+  const prevStage = currentIndex > 0 ? allStages[currentIndex - 1] : null;
+  const nextStage =
+    currentIndex < allStages.length - 1
+      ? allStages[currentIndex + 1]
+      : null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <nav className="text-sm text-muted-foreground mb-4">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
+      {/* 面包屑 */}
+      <nav className="text-sm text-muted-foreground mb-6">
         <a href="/lifecycle" className="hover:text-foreground">
           生活史
         </a>{" "}
-        → {data.name}
+        → {stage.name}
       </nav>
 
+      {/* 头部 */}
       <div className="mb-8 flex items-center gap-4">
-        <span className="text-4xl">{data.icon}</span>
+        <span
+          className="text-5xl w-16 h-16 rounded-full flex items-center justify-center border-2"
+          style={{
+            borderColor: stage.color || "#666",
+            backgroundColor: `${stage.color || "#666"}15`,
+          }}
+        >
+          {stage.icon || "📌"}
+        </span>
         <div>
-          <h1 className="text-3xl font-bold">{data.name}</h1>
-          <p className="mt-1 text-muted-foreground">弓背蚁属 · 生活史阶段</p>
+          <h1 className="text-3xl font-bold">{stage.name}</h1>
+          <p className="mt-1 text-muted-foreground">
+            弓背蚁属 · 阶段 {currentIndex + 1} / {allStages.length}
+            {stage.milestone && (
+              <span
+                className="ml-2 text-xs px-2 py-0.5 rounded-full text-white"
+                style={{ backgroundColor: stage.color || "#666" }}
+              >
+                里程碑
+              </span>
+            )}
+          </p>
         </div>
       </div>
 
-      {/* TODO: 从数据库加载并渲染完整的阶段详情内容 */}
-      <div className="rounded-lg border bg-card p-6 space-y-6">
-        <section>
-          <h2 className="font-semibold text-lg">阶段定义</h2>
-          <p className="mt-2 text-muted-foreground">
-            （此区域将从 life_stages 表加载 definition 字段内容）
-          </p>
-        </section>
+      {/* 阶段详情内容 */}
+      <div className="space-y-6">
+        {stage.definition && (
+          <section className="rounded-lg border bg-card p-6">
+            <h2 className="font-semibold text-lg mb-3">阶段定义</h2>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {stage.definition}
+            </p>
+          </section>
+        )}
 
-        <section>
-          <h2 className="font-semibold text-lg">外显特征</h2>
-          <p className="mt-2 text-muted-foreground">
-            （加载 external_features）
-          </p>
-        </section>
+        {stage.external_features && (
+          <section className="rounded-lg border bg-card p-6">
+            <h2 className="font-semibold text-lg mb-3">外显特征</h2>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {stage.external_features}
+            </p>
+          </section>
+        )}
 
-        <section>
-          <h2 className="font-semibold text-lg">养殖注意事项</h2>
-          <p className="mt-2 text-muted-foreground">
-            （加载 care_notes）
-          </p>
-        </section>
+        {stage.common_behaviors && (
+          <section className="rounded-lg border bg-card p-6">
+            <h2 className="font-semibold text-lg mb-3">常见行为</h2>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {stage.common_behaviors}
+            </p>
+          </section>
+        )}
 
-        <section>
-          <h2 className="font-semibold text-lg">常见误区</h2>
-          <p className="mt-2 text-muted-foreground">
-            （加载 common_mistakes）
-          </p>
-        </section>
+        {stage.care_notes && (
+          <section className="rounded-lg border bg-card p-6">
+            <h2 className="font-semibold text-lg mb-3">养殖注意事项</h2>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {stage.care_notes}
+            </p>
+          </section>
+        )}
+
+        {stage.common_mistakes && (
+          <section className="rounded-lg border bg-destructive/10 p-6">
+            <h2 className="font-semibold text-lg mb-3 text-destructive">
+              常见误区
+            </h2>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {stage.common_mistakes}
+            </p>
+          </section>
+        )}
+
+        {(stage.duration_base || stage.duration_note) && (
+          <section className="rounded-lg border bg-card p-6">
+            <h2 className="font-semibold text-lg mb-3">持续时间</h2>
+            {stage.duration_base && (
+              <p className="font-medium text-lg">{stage.duration_base}</p>
+            )}
+            {stage.duration_note && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {stage.duration_note}
+              </p>
+            )}
+          </section>
+        )}
+
+        {stage.tips && (
+          <section className="rounded-lg border bg-accent/50 p-6">
+            <h2 className="font-semibold text-lg mb-3">小贴士</h2>
+            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+              {Array.isArray(stage.tips)
+                ? (stage.tips as string[]).map((tip, i) => <li key={i}>{tip}</li>)
+                : null}
+            </ul>
+          </section>
+        )}
       </div>
 
       {/* 模块联动：去记录按钮 */}
@@ -101,13 +168,32 @@ export default async function LifecycleStagePage({
       </div>
 
       {/* 前后导航 */}
-      <div className="mt-8 flex justify-between">
-        <Link
-          href="/lifecycle"
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← 返回总览
-        </Link>
+      <div className="mt-8 flex justify-between items-center">
+        {prevStage ? (
+          <Link
+            href={`/lifecycle/${prevStage.stage_key}`}
+            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            ← {prevStage.name}
+          </Link>
+        ) : (
+          <span />
+        )}
+        {nextStage ? (
+          <Link
+            href={`/lifecycle/${nextStage.stage_key}`}
+            className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+          >
+            {nextStage.name} →
+          </Link>
+        ) : (
+          <Link
+            href="/lifecycle"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            返回总览 →
+          </Link>
+        )}
       </div>
     </div>
   );

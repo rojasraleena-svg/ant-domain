@@ -81,3 +81,5 @@ ehthumbs.db
 # misc local files
 PROFILE
 .PROFILE.*
+
+.vercel

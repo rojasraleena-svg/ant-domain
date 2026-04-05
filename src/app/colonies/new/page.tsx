@@ -10,6 +10,13 @@ export default async function NewColonyPage() {
   const user = await getSession();
   if (!user) redirect("/login");
 
+  // 从数据库加载物种列表
+  const { data: speciesList } = await db
+    .from("species")
+    .select("id, name_cn, name_lat, genus_cn, beginner_friendly")
+    .eq("status", 1)
+    .order("sort_order", { ascending: true });
+
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8">
       <div className="mb-8">
@@ -65,7 +72,7 @@ export default async function NewColonyPage() {
           />
         </div>
 
-        {/* 物种选择 */}
+        {/* 物种选择（动态加载） */}
         <div>
           <label htmlFor="speciesId" className="block text-sm font-medium mb-1.5">
             物种 *
@@ -77,13 +84,13 @@ export default async function NewColonyPage() {
             className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
           >
             <option value="">选择物种...</option>
-            <option value="1">日本弓背蚁 - Camponotus japonicus</option>
-            <option value="2">尼科巴弓背蚁 - Camponotus nicobarensis</option>
-            <option value="6">拟黑多刺蚁 - Polyrhachis dives</option>
-            <option value="3">史密斯弓背蚁 - Camponotus smithi</option>
-            <option value="4">费氏弓背蚁 - Camponotus festinus</option>
-            <option value="5">宽结弓背蚁 - Camponotus tortuganus</option>
-            <option value="7">双齿多刺蚁 - Polyrhachis lamellidens</option>
+            {(speciesList ?? []).map((sp) => (
+              <option key={sp.id} value={sp.id}>
+                {sp.name_cn} - {sp.name_lat}
+                {sp.beginner_friendly ? " [新手推荐]" : ""}
+                {sp.genus_cn ? ` (${sp.genus_cn})` : ""}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -91,7 +98,7 @@ export default async function NewColonyPage() {
         <div>
           <label htmlFor="foundedDate" className="block text-sm font-medium mb-1.5">
             建档日期 *
-        </label>
+          </label>
           <input
             id="foundedDate"
             name="foundedDate"

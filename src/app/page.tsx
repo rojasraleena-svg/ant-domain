@@ -1,6 +1,15 @@
 import Link from "next/link";
+import { db } from "@/lib/db";
 
-export default function HomePage() {
+export default async function HomePage() {
+  // 加载推荐物种（新手优先 + 有排序值的）
+  const { data: recommendedSpecies } = await db
+    .from("species")
+    .select("id, name_cn, name_lat, genus_cn, beginner_friendly, summary")
+    .eq("status", 1)
+    .order("sort_order", { ascending: true })
+    .limit(3);
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero */}
@@ -62,27 +71,51 @@ export default function HomePage() {
             查看全部 →
           </Link>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="recommended-species">
-          {/* TODO: 从数据库加载推荐物种 */}
-          <div className="rounded-lg border bg-card p-4">
-            <h3 className="font-medium">日本弓背蚁</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Camponotus japonicus · 新手推荐
-            </p>
+
+        {!recommendedSpecies || recommendedSpecies.length === 0 ? (
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-lg border bg-card p-4 animate-pulse"
+              >
+                <div className="h-5 w-24 bg-muted rounded mb-2" />
+                <div className="h-4 w-40 bg-muted rounded" />
+              </div>
+            ))}
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <h3 className="font-medium">尼科巴弓背蚁</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Camponotus nicobarensis · 无需冬眠
-            </p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recommendedSpecies.map((sp) => (
+              <Link
+                key={sp.id}
+                href={`/species/${sp.id}`}
+                className="group rounded-lg border bg-card p-5 transition-colors hover:bg-accent"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="font-medium group-hover:text-primary transition-colors">
+                      {sp.name_cn}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5 italic">
+                      {sp.name_lat}
+                    </p>
+                  </div>
+                  {sp.beginner_friendly && (
+                    <span className="rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 px-2 py-0.5 text-xs whitespace-nowrap">
+                      新手推荐
+                    </span>
+                  )}
+                </div>
+                {sp.summary && (
+                  <p className="mt-2 text-sm line-clamp-2 text-muted-foreground">
+                    {sp.summary}
+                  </p>
+                )}
+              </Link>
+            ))}
           </div>
-          <div className="rounded-lg border bg-card p-4">
-            <h3 className="font-medium">拟黑多刺蚁</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Polyrhachis dives · 国产经典入门种
-            </p>
-          </div>
-        </div>
+        )}
       </section>
     </div>
   );
