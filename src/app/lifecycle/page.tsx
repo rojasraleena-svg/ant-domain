@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getAllLifeStages } from "@/lib/public-data";
+import { getAllLifeStages, getLifecycleGenera } from "@/lib/public-data";
 import {
   Plane,
   Home,
@@ -14,7 +14,6 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-// 阶段图标映射：stage_key → Lucide 组件
 const stageIcons: Record<string, LucideIcon> = {
   nuptial_flight: Plane,
   nesting: Home,
@@ -30,34 +29,66 @@ const stageIcons: Record<string, LucideIcon> = {
 
 export const metadata = {
   title: "生活史",
-  description: "弓背蚁属完整生命周期 — 从婚飞到成熟群体",
+  description: "蚂蚁完整生命周期 — 从婚飞到成熟群体，支持多属对比",
 };
 
-export default async function LifecyclePage() {
-  const stages = await getAllLifeStages();
+interface LifecyclePageProps {
+  searchParams: Promise<{ genus?: string }>;
+}
+
+export default async function LifecyclePage({ searchParams }: LifecyclePageProps) {
+  const { genus: selectedGenus = "Camponotus" } = await searchParams;
+  const [allStages, genera] = await Promise.all([
+    getAllLifeStages(),
+    getLifecycleGenera(),
+  ]);
+
+  const stages = allStages.filter((s) => s.target_genus === selectedGenus);
+  const currentGenusName = genera.find((g) => g.genus === selectedGenus)?.name || selectedGenus;
 
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">
-      {/* 页面头部 */}
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight page-header-bar title-deco">
           生活史
         </h1>
         <p className="mt-4 text-muted-foreground text-base">
-          弓背蚁属（Camponotus）完整生命周期 · 从婚飞到成熟群体
+          {currentGenusName}（{selectedGenus}）完整生命周期 · 从婚飞到成熟群体
         </p>
       </div>
 
-      {/* 时间轴总览 — 响应式：移动端垂直 / 桌面端水平 */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-6 rounded-full bg-gradient-to-b from-primary/60 to-accent-warm/60" />
+          <h2 className="text-sm font-medium text-muted-foreground">选择属</h2>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {genera.map((g) => {
+            const isActive = g.genus === selectedGenus;
+            return (
+              <Link
+                key={g.genus}
+                href={`/lifecycle?genus=${g.genus}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-card border border-border hover:border-primary/30 hover:bg-primary/5"
+                }`}
+              >
+                {g.name}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
       <section className="mb-14">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-1 h-6 rounded-full bg-gradient-to-b from-primary to-accent-warm" />
           <h2 className="text-xl font-bold">生命周期总览</h2>
         </div>
 
-        {/* 桌面端：水平时间轴 */}
         <div className="hidden sm:block relative overflow-x-auto pb-6 -mx-4 px-4">
-          {/* SVG 连接线 — 覆盖整个宽度，不会因滚动断裂 */}
           <svg className="absolute top-[26px] left-0 right-0 w-full pointer-events-none overflow-visible" style={{ height: 4 }}>
             <defs>
               <linearGradient id="timeline-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -75,7 +106,7 @@ export default async function LifecyclePage() {
               return (
                 <Link
                   key={stage.stage_key}
-                  href={`/lifecycle/${stage.stage_key}`}
+                  href={`/lifecycle/${stage.stage_key}?genus=${selectedGenus}`}
                   className="group flex flex-col items-center gap-2 z-10 min-w-[72px]"
                 >
                   <div
@@ -112,23 +143,20 @@ export default async function LifecyclePage() {
           </div>
         </div>
 
-        {/* 移动端：垂直时间轴 */}
         <div className="sm:hidden relative pl-8">
-          {/* 垂直连接线 */}
           <div className="absolute left-[15px] top-2 bottom-2 w-[2px]" style={{
             background: "linear-gradient(to bottom, #8B5CF640, #F59E0B40, #EF444440, #22C55E40, #94A3B840)",
           }} />
 
           <div className="flex flex-col gap-4">
-            {stages.map((stage, i) => {
+            {stages.map((stage) => {
               const Icon = stageIcons[stage.stage_key];
               return (
                 <Link
                   key={stage.stage_key}
-                  href={`/lifecycle/${stage.stage_key}`}
+                  href={`/lifecycle/${stage.stage_key}?genus=${selectedGenus}`}
                   className="group flex items-center gap-4 relative"
                 >
-                  {/* 节点圆圈 */}
                   <div
                     className={`absolute -left-8 w-8 h-8 rounded-xl border-2 bg-card flex items-center justify-center shrink-0 transition-all duration-300 group-hover:scale-110 ${
                       stage.milestone ? "shadow-md" : ""
@@ -141,7 +169,6 @@ export default async function LifecyclePage() {
                     {Icon ? <Icon size={16} style={{ color: stage.color || "#888" }} /> : <span className="text-xs">{stage.icon}</span>}
                   </div>
 
-                  {/* 内容 */}
                   <div className="flex-1 min-w-0 py-1.5 border-b border-border/30 last:border-0 pb-3">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm group-hover:text-primary transition-colors">{stage.name}</span>
@@ -168,7 +195,6 @@ export default async function LifecyclePage() {
         </div>
       </section>
 
-      {/* 阶段卡片列表 */}
       <section>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-1 h-6 rounded-full bg-gradient-to-b from-nature-green to-emerald-400" />
@@ -182,19 +208,16 @@ export default async function LifecyclePage() {
             return (
               <Link
                 key={stage.stage_key}
-                href={`/lifecycle/${stage.stage_key}`}
+                href={`/lifecycle/${stage.stage_key}?genus=${selectedGenus}`}
                 className={`group card-hover rounded-2xl border bg-card p-5 sm:p-6 relative overflow-hidden transition-all duration-300 ${
                   isMilestone ? "border-opacity-60 hover:border-opacity-100" : ""
                 }`}
                 style={{ borderColor: isMilestone ? (stage.color || "#666") + "40" : undefined }}
               >
-                {/* 左侧色条 */}
                 <div
                   className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl opacity-60 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ backgroundColor: stage.color || "#666" }}
                 />
-
-                {/* 里程碑背景光效 */}
                 {isMilestone && (
                   <div
                     className="absolute inset-0 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-300 pointer-events-none"
@@ -235,7 +258,6 @@ export default async function LifecyclePage() {
                       阶段 {String(i + 1).padStart(2, "0")} / {String(stages.length).padStart(2, "0")}
                       {stage.duration_base && ` · ${stage.duration_base}`}
                     </p>
-                    {/* 摘要信息 */}
                     {stage.definition && (
                       <p className="text-xs text-muted-foreground/75 mt-2 line-clamp-2 leading-relaxed">
                         {stage.definition}

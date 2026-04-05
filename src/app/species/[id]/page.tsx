@@ -217,11 +217,11 @@ export default async function SpeciesDetailPage({
           <div>
             <h2 className="font-semibold text-lg">查看生活史</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              了解弓背蚁从婚飞到成熟的完整生命历程
+              了解{sp.genus_cn || sp.genus}从婚飞到成熟的完整生命历程
             </p>
           </div>
           <Link
-            href="/lifecycle"
+            href={`/lifecycle?genus=${sp.genus}`}
             className="rounded-lg bg-primary px-5 py-2 text-sm text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
           >
             查看生活史 {"->"}

@@ -142,7 +142,7 @@ export default async function HomePage() {
             </div>
             <h2 className="text-lg font-bold tracking-tight">生活史</h2>
             <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
-              了解弓背蚁从婚飞到成熟的完整生命历程
+              了解蚂蚁从婚飞到成熟的完整生命历程
             </p>
             <div className="mt-4 text-xs font-medium text-nature-green opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
               探索阶段 <IconArrowRight className="w-3 h-3" />

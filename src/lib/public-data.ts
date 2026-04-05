@@ -96,3 +96,61 @@ export async function getPrimarySpecimenImage(speciesId: number) {
   if (error) throw error;
   return data;
 }
+
+// 获取所有支持生活史的属列表（从 life_stages 中去重 target_genus）
+export async function getLifecycleGenera() {
+  const { data, error } = await publicDb
+    .from("life_stages")
+    .select("target_genus");
+
+  if (error) throw error;
+
+  const genusMap = new Map<string, string>();
+  const genusCnMap: Record<string, string> = {
+    Camponotus: "弓背蚁属",
+    Polyrhachis: "多刺蚁属",
+    Formica: "蚁属",
+    Lasius: "毛蚁属",
+    Paratrechina: "立毛蚁属",
+    Oecophylla: "织叶蚁属",
+    Plagiolepis: "矮蚁属",
+  };
+
+  for (const row of data) {
+    if (!genusMap.has(row.target_genus)) {
+      genusMap.set(row.target_genus, genusCnMap[row.target_genus] || row.target_genus);
+    }
+  }
+
+  return Array.from(genusMap.entries()).map(([genus, name]) => ({
+    genus,
+    name,
+  }));
+}
+
+// 按属获取所有生活史阶段
+export async function getLifeStagesByGenus(genus: string) {
+  const { data, error } = await publicDb
+    .from("life_stages")
+    .select("*")
+    .eq("target_genus", genus)
+    .order("order_index", { ascending: true });
+
+  if (error) throw error;
+  return data;
+}
+
+// 获取某阶段在某属的差异化信息
+export async function getStageDiff(stageKey: string, genus: string) {
+  const { data, error } = await publicDb
+    .from("stage_species_diffs")
+    .select("*")
+    .eq("stage_key", stageKey)
+    .eq("genus", genus)
+    .single();
+
+  // 没有差异记录时返回 null（说明该属此阶段与基准一致）
+  if (error && error.code === "PGRST116") return null;
+  if (error) throw error;
+  return data;
+}
