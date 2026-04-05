@@ -2,6 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSpeciesById } from "@/lib/public-data";
 
+function getDietLabel(diet: string | null): string {
+  if (!diet) return "";
+  const map: Record<string, string> = {
+    omnivore: "杂食性",
+    carnivore: "肉食性",
+    sugar_feeder: "甜食偏好",
+  };
+  return map[diet] || diet;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -161,13 +171,7 @@ export default async function SpeciesDetailPage({
             {sp.diet_type && (
               <div>
                 <span className="text-sm text-muted-foreground">食性</span>
-                <p className="font-medium">
-                  ({
-                    omnivore: "杂食性",
-                    carnivore: "肉食性",
-                    sugar_feeder: "甜食偏好",
-                  } as Record<string, string>)[sp.diet_type] || sp.diet_type}
-                </p>
+                <p className="font-medium">{getDietLabel(sp.diet_type)}</p>
               </div>
             )}
             {sp.nest_type && (
