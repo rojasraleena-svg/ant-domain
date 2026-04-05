@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, useCallback } from "react";
 
 export interface SpecimenImageData {
@@ -21,6 +20,21 @@ const VIEW_TYPE_LABELS: Record<string, string> = {
   habitat: "生境照",
   other: "其他",
 };
+
+function Img({
+  src,
+  alt,
+  className,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+}) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} className={className} loading="lazy" />
+  );
+}
 
 export function SpecimenImageGallery({
   images,
@@ -62,13 +76,10 @@ export function SpecimenImageGallery({
         tabIndex={0}
         aria-label={`查看${VIEW_TYPE_LABELS[selected.view_type] || "标本"}大图`}
       >
-        <Image
+        <Img
           src={selected.url}
           alt={`${VIEW_TYPE_LABELS[selected.view_type] || "标本"}图像 - ${selected.photographer || ""}`}
-          fill
-          className="object-contain"
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 768px, 832px"
-          priority={selected.is_primary}
+          className="absolute inset-0 w-full h-full object-contain"
         />
 
         {/* 视角标签 */}
@@ -106,12 +117,10 @@ export function SpecimenImageGallery({
               aria-label={`切换到第 ${idx + 1} 张图像`}
               aria-pressed={idx === selectedIdx}
             >
-              <Image
+              <Img
                 src={img.thumbnail_url || img.url}
                 alt=""
-                fill
-                className="object-cover"
-                sizes="64px"
+                className="w-full h-full object-cover"
               />
             </button>
           ))}
@@ -176,13 +185,10 @@ export function SpecimenImageGallery({
 
           {/* 大图 */}
           <div className="relative max-w-[90vw] max-h-[85vh]">
-            <Image
+            <Img
               src={images[selectedIdx].url}
               alt="放大预览"
-              width={1200}
-              height={900}
               className="max-w-full max-h-[85vh] object-contain rounded-lg"
-              priority
             />
           </div>
 
