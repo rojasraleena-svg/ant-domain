@@ -10,7 +10,7 @@ export async function generateMetadata({
 }) {
   const { id } = await params;
   try {
-    const sp = await getSpeciesById(parseInt(id));
+    const sp = await getSpeciesById(parseInt(id, 10));
     return {
       title: `${sp.name_cn} - ${sp.name_lat}`,
       description: sp.summary || `蚁域物种资料 - ${sp.name_cn}`,
@@ -41,29 +41,25 @@ export default async function SpeciesDetailPage({
 
   let sp;
   try {
-    sp = await getSpeciesById(parseInt(id));
+    sp = await getSpeciesById(parseInt(id, 10));
   } catch {
     notFound();
   }
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      {/* 面包屑 */}
       <nav className="text-sm text-muted-foreground mb-6">
-        <a href="/species" className="hover:text-foreground">
+        <Link href="/species" className="hover:text-foreground">
           资料库
-        </a>{" "}
-        → {sp.name_cn}
+        </Link>{" "}
+        {"->"} {sp.name_cn}
       </nav>
 
-      {/* 头部信息 */}
       <div className="mb-8">
         <div className="flex items-start gap-4 flex-wrap">
           <div>
             <h1 className="text-3xl font-bold">{sp.name_cn}</h1>
-            <p className="mt-1 text-lg italic text-muted-foreground">
-              {sp.name_lat}
-            </p>
+            <p className="mt-1 text-lg italic text-muted-foreground">{sp.name_lat}</p>
           </div>
           <div className="flex gap-2 ml-auto">
             {sp.beginner_friendly && (
@@ -81,17 +77,15 @@ export default async function SpeciesDetailPage({
           </div>
         </div>
 
-        {/* 分类层级 */}
         <div className="mt-4 flex gap-2 text-sm text-muted-foreground flex-wrap">
           <span>{sp.subfamily_cn || sp.subfamily}</span>
-          <span>&gt;</span>
+          <span>{">"}</span>
           <span>{sp.genus_cn || sp.genus}</span>
-          <span>&gt;</span>
+          <span>{">"}</span>
           <span className="text-foreground font-medium">{sp.name_cn}</span>
         </div>
       </div>
 
-      {/* 基本信息 */}
       <section className="mb-8 rounded-lg border bg-card p-6">
         <h2 className="font-semibold text-lg mb-4">基本信息</h2>
         {sp.summary && (
@@ -104,7 +98,6 @@ export default async function SpeciesDetailPage({
         )}
       </section>
 
-      {/* 形态特征 */}
       {(sp.worker_size || sp.queen_size || sp.body_color || sp.key_features) && (
         <section className="mb-8 rounded-lg border bg-card p-6">
           <h2 className="font-semibold text-lg mb-4">形态特征</h2>
@@ -137,7 +130,6 @@ export default async function SpeciesDetailPage({
         </section>
       )}
 
-      {/* 饲养信息 */}
       {(sp.temp_min || sp.humidity_min || sp.diet_type || sp.nest_type) && (
         <section className="mb-8 rounded-lg border bg-card p-6">
           <h2 className="font-semibold text-lg mb-4">饲养信息</h2>
@@ -154,8 +146,7 @@ export default async function SpeciesDetailPage({
               <div>
                 <span className="text-sm text-muted-foreground">推荐湿度</span>
                 <p className="font-medium">
-                  {sp.humidity_optimal ||
-                    `${sp.humidity_min}-${sp.humidity_max}`}%{" "}
+                  {sp.humidity_optimal || `${sp.humidity_min}-${sp.humidity_max}`}%
                 </p>
               </div>
             )}
@@ -183,7 +174,6 @@ export default async function SpeciesDetailPage({
         </section>
       )}
 
-      {/* 分布与生态 */}
       {(sp.distribution || sp.habitat || sp.flight_season) && (
         <section className="mb-8 rounded-lg border bg-card p-6">
           <h2 className="font-semibold text-lg mb-4">分布与生态</h2>
@@ -216,7 +206,6 @@ export default async function SpeciesDetailPage({
         </section>
       )}
 
-      {/* 生活史入口（模块联动） */}
       <section className="mb-8 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-6">
         <div className="flex items-center justify-between">
           <div>
@@ -229,7 +218,7 @@ export default async function SpeciesDetailPage({
             href="/lifecycle"
             className="rounded-lg bg-primary px-5 py-2 text-sm text-primary-foreground hover:bg-primary/90 whitespace-nowrap"
           >
-            查看生活史 →
+            查看生活史 {"->"}
           </Link>
         </div>
       </section>

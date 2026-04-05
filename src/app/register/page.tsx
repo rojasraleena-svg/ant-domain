@@ -1,17 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { getSession, hashPassword } from "@/lib/auth";
+import { ensureAuthMirror } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
-import { hashPassword } from "@/lib/auth";
 
 const REG_MESSAGES: Record<string, string> = {
-  short_username: "用户名至少需要2个字符",
+  short_username: "用户名至少需要 2 个字符",
   invalid_username: "用户名只能包含字母、数字、下划线和中文",
-  short_password: "密码至少需要6个字符",
+  short_password: "密码至少需要 6 个字符",
   password_mismatch: "两次输入的密码不一致",
   user_exists: "该用户名已被使用",
   register_failed: "注册失败，请稍后重试",
-  success: "注册成功，请登录",
 };
 
 export const metadata = {
@@ -41,11 +40,13 @@ export default async function RegisterPage({
         </div>
 
         {message && (
-          <div className={`mb-4 rounded-xl border p-3.5 text-sm animate-[fadeInUp_0.3s_ease-out] ${
-            isSuccess
-              ? "bg-primary/8 border-primary/20 text-primary"
-              : "bg-destructive/8 border-destructive/15 text-destructive"
-          }`}>
+          <div
+            className={`mb-4 rounded-xl border p-3.5 text-sm animate-[fadeInUp_0.3s_ease-out] ${
+              isSuccess
+                ? "bg-primary/8 border-primary/20 text-primary"
+                : "bg-destructive/8 border-destructive/15 text-destructive"
+            }`}
+          >
             {message}
           </div>
         )}
@@ -53,6 +54,7 @@ export default async function RegisterPage({
         <form
           action={async (formData) => {
             "use server";
+
             const username = (formData.get("username") as string).trim();
             const password = formData.get("password") as string;
             const confirmPassword = formData.get("confirmPassword") as string;
@@ -60,21 +62,35 @@ export default async function RegisterPage({
             if (!username || username.length < 2) {
               redirect("/register?msg=short_username");
             }
+
             if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
               redirect("/register?msg=invalid_username");
             }
+
             if (password.length < 6) {
               redirect("/register?msg=short_password");
             }
+
             if (password !== confirmPassword) {
               redirect("/register?msg=password_mismatch");
             }
 
-            // 创建用户（利用数据库唯一约束处理并发）
+            const userId = crypto.randomUUID();
             const passwordHash = await hashPassword(password);
+
+            try {
+              await ensureAuthMirror({
+                id: userId,
+                username,
+                passwordHash,
+              });
+            } catch {
+              redirect("/register?msg=register_failed");
+            }
+
             const { error } = await db
               .from("users")
-              .insert({ username, password_hash: passwordHash })
+              .insert({ id: userId, username, password_hash: passwordHash })
               .select("id")
               .single();
 
@@ -86,15 +102,19 @@ export default async function RegisterPage({
               ) {
                 redirect("/register?msg=user_exists");
               }
+
               redirect("/register?msg=register_failed");
             }
 
-            redirect("/login?msg=success");
+            redirect("/login?msg=registered");
           }}
           className="space-y-4"
         >
           <div>
-            <label htmlFor="username" className="block text-sm font-medium mb-1.5 text-foreground/80">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium mb-1.5 text-foreground/80"
+            >
               用户名
             </label>
             <input
@@ -111,7 +131,10 @@ export default async function RegisterPage({
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-1.5 text-foreground/80">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium mb-1.5 text-foreground/80"
+            >
               密码
             </label>
             <input
@@ -127,7 +150,10 @@ export default async function RegisterPage({
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-1.5 text-foreground/80">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium mb-1.5 text-foreground/80"
+            >
               确认密码
             </label>
             <input
@@ -152,7 +178,10 @@ export default async function RegisterPage({
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           已有账号？{" "}
-          <Link href="/login" className="text-primary font-medium hover:text-primary-dark transition-colors">
+          <Link
+            href="/login"
+            className="text-primary font-medium hover:text-primary-dark transition-colors"
+          >
             登录
           </Link>
         </p>

@@ -128,7 +128,7 @@ export async function generateWeeklyReport(
 
   const logText = input.logs
     .map(
-      (log, i) =>
+      (log) =>
         `[${log.date}] ${log.title}：${log.content}${
           log.workerCount ? `（工蚁${log.workerCount}）` : ""
         }${log.abnormalType ? `【异常：${log.abnormalType}】` : ""}`
@@ -231,7 +231,6 @@ function parseAIResponse(text: string): SummarizeLogResult {
   const nextStepsArr = extractList(text, "建议");
   const nextSteps = nextStepsArr.length > 0 ? nextStepsArr : ["继续保持观察"];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return { summary, inferredStage, riskAlert, nextSteps } as unknown as SummarizeLogResult;
 }
 
@@ -254,8 +253,8 @@ function extractList(text: string, keyword: string): string[] {
   if (!section) return [];
   const rawItems = section.split(/[\n、;，]/);
   const result: string[] = [];
-  for (let i = 0; i < rawItems.length; i++) {
-    const s = rawItems[i].replace(/^[\d\.\[\]]*[-·]/, "").trim();
+  for (const item of rawItems) {
+    const s = item.replace(/^[\d\.\[\]]*[-·]/, "").trim();
     if (s.length > 0) result.push(s);
   }
   return result;

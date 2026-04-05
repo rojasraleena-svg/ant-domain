@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getLifeStageByKey, getAllLifeStages } from "@/lib/public-data";
+import { getAllLifeStages, getLifeStageByKey } from "@/lib/public-data";
 
 export async function generateMetadata({
   params,
@@ -8,6 +8,7 @@ export async function generateMetadata({
   params: Promise<{ stage: string }>;
 }) {
   const { stage: key } = await params;
+
   try {
     const data = await getLifeStageByKey(key);
     return {
@@ -37,21 +38,17 @@ export default async function LifecycleStagePage({
   const currentIndex = allStages.findIndex((s) => s.stage_key === key);
   const prevStage = currentIndex > 0 ? allStages[currentIndex - 1] : null;
   const nextStage =
-    currentIndex < allStages.length - 1
-      ? allStages[currentIndex + 1]
-      : null;
+    currentIndex < allStages.length - 1 ? allStages[currentIndex + 1] : null;
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      {/* 面包屑 */}
       <nav className="text-sm text-muted-foreground mb-6">
-        <a href="/lifecycle" className="hover:text-foreground">
+        <Link href="/lifecycle" className="hover:text-foreground">
           生活史
-        </a>{" "}
-        → {stage.name}
+        </Link>{" "}
+        {"->"} {stage.name}
       </nav>
 
-      {/* 头部 */}
       <div className="mb-8 flex items-center gap-4">
         <span
           className="text-5xl w-16 h-16 rounded-full flex items-center justify-center border-2"
@@ -60,7 +57,7 @@ export default async function LifecycleStagePage({
             backgroundColor: `${stage.color || "#666"}15`,
           }}
         >
-          {stage.icon || "📌"}
+          {stage.icon || "🔶"}
         </span>
         <div>
           <h1 className="text-3xl font-bold">{stage.name}</h1>
@@ -78,7 +75,6 @@ export default async function LifecycleStagePage({
         </div>
       </div>
 
-      {/* 阶段详情内容 */}
       <div className="space-y-6">
         {stage.definition && (
           <section className="rounded-lg border bg-card p-6">
@@ -109,7 +105,7 @@ export default async function LifecycleStagePage({
 
         {stage.care_notes && (
           <section className="rounded-lg border bg-card p-6">
-            <h2 className="font-semibold text-lg mb-3">养殖注意事项</h2>
+            <h2 className="font-semibold text-lg mb-3">饲养注意事项</h2>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {stage.care_notes}
             </p>
@@ -118,9 +114,7 @@ export default async function LifecycleStagePage({
 
         {stage.common_mistakes && (
           <section className="rounded-lg border bg-destructive/10 p-6">
-            <h2 className="font-semibold text-lg mb-3 text-destructive">
-              常见误区
-            </h2>
+            <h2 className="font-semibold text-lg mb-3 text-destructive">常见误区</h2>
             <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
               {stage.common_mistakes}
             </p>
@@ -134,9 +128,7 @@ export default async function LifecycleStagePage({
               <p className="font-medium text-lg">{stage.duration_base}</p>
             )}
             {stage.duration_note && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {stage.duration_note}
-              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{stage.duration_note}</p>
             )}
           </section>
         )}
@@ -146,14 +138,15 @@ export default async function LifecycleStagePage({
             <h2 className="font-semibold text-lg mb-3">小贴士</h2>
             <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
               {Array.isArray(stage.tips)
-                ? (stage.tips as string[]).map((tip, i) => <li key={i}>{tip}</li>)
+                ? (stage.tips as string[]).map((tip, index) => (
+                    <li key={index}>{tip}</li>
+                  ))
                 : null}
             </ul>
           </section>
         )}
       </div>
 
-      {/* 模块联动：去记录按钮 */}
       <div className="mt-8 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-6 text-center">
         <p className="font-medium">你的蚁群走到这个阶段了吗？</p>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -163,35 +156,35 @@ export default async function LifecycleStagePage({
           href="/colonies/new"
           className="mt-4 inline-block rounded-lg bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90"
         >
-          去记录 →
+          去记录 {"->"}
         </Link>
       </div>
 
-      {/* 前后导航 */}
       <div className="mt-8 flex justify-between items-center">
         {prevStage ? (
           <Link
             href={`/lifecycle/${prevStage.stage_key}`}
             className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
-            ← {prevStage.name}
+            {"<-"} {prevStage.name}
           </Link>
         ) : (
           <span />
         )}
+
         {nextStage ? (
           <Link
             href={`/lifecycle/${nextStage.stage_key}`}
             className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
-            {nextStage.name} →
+            {nextStage.name} {"->"}
           </Link>
         ) : (
           <Link
             href="/lifecycle"
             className="text-sm text-muted-foreground hover:text-foreground"
           >
-            返回总览 →
+            返回总览 {"->"}
           </Link>
         )}
       </div>

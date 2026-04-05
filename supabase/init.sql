@@ -162,7 +162,7 @@ CREATE TRIGGER update_life_stages_updated_at
 -- ============================================
 CREATE TABLE IF NOT EXISTS colonies (
   id              SERIAL PRIMARY KEY,
-  user_id         UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name            TEXT NOT NULL,
   species_id      INTEGER NOT NULL REFERENCES species(id) ON DELETE CASCADE,
   avatar          TEXT,

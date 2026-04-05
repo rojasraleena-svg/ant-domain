@@ -1,27 +1,39 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { getSession, setAuthCookie, signToken, verifyPassword } from "@/lib/auth";
+import { ensureAuthMirror } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
-import { verifyPassword, signToken, setAuthCookie } from "@/lib/auth";
 
 const LOGIN_MESSAGES: Record<string, string> = {
   empty_fields: "请填写用户名和密码",
   invalid_credentials: "用户名或密码错误",
   registered: "注册成功，请登录",
+  login_failed: "登录失败，请稍后重试",
 };
 
 export const metadata = {
   title: "登录",
 };
 
-/* 装饰性蚂蚁 SVG */
 function AntDecorative() {
   return (
     <svg className="w-10 h-10 text-primary/25" viewBox="0 0 32 32" fill="none">
       <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.6" />
       <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.6" />
-      <path d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
-      <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.4" />
+      <path
+        d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
+      <path
+        d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        opacity="0.4"
+      />
     </svg>
   );
 }
@@ -40,11 +52,12 @@ export default async function LoginPage({
 
   return (
     <div className="min-h-[calc(100vh-3.75rem)] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-warm pattern-dots">
-      {/* 背景装饰 */}
       <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-1/4 -left-20 w-60 h-60 rounded-full bg-primary/5 blur-3xl" />
         <div className="absolute bottom-1/3 -right-10 w-40 h-40 rounded-full bg-accent-warm/5 blur-2xl" />
-        <div className="absolute top-1/2 left-1/2"><AntDecorative /></div>
+        <div className="absolute top-1/2 left-1/2">
+          <AntDecorative />
+        </div>
       </div>
 
       <div className="relative w-full max-w-sm animate-[scaleIn_0.4s_ease-out]">
@@ -55,8 +68,18 @@ export default async function LoginPage({
                 <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.9" />
                 <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.9" />
                 <circle cx="14.5" cy="10.5" r="1.5" fill="white" opacity="0.25" />
-                <path d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-                <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                <path
+                  d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
             <h1 className="text-2xl font-bold tracking-tight">欢迎回来</h1>
@@ -64,16 +87,21 @@ export default async function LoginPage({
           </div>
 
           {message && (
-            <div className={`mb-6 rounded-xl border p-4 text-sm animate-[fadeInUp_0.3s_ease-out] ${
-              isSuccess
-                ? "bg-primary/8 border-primary/20 text-primary"
-                : "bg-destructive/8 border-destructive/15 text-destructive"
-            }`}>{message}</div>
+            <div
+              className={`mb-6 rounded-xl border p-4 text-sm animate-[fadeInUp_0.3s_ease-out] ${
+                isSuccess
+                  ? "bg-primary/8 border-primary/20 text-primary"
+                  : "bg-destructive/8 border-destructive/15 text-destructive"
+              }`}
+            >
+              {message}
+            </div>
           )}
 
           <form
             action={async (formData) => {
               "use server";
+
               const username = formData.get("username") as string;
               const password = formData.get("password") as string;
 
@@ -96,6 +124,16 @@ export default async function LoginPage({
                 redirect("/login?msg=invalid_credentials");
               }
 
+              try {
+                await ensureAuthMirror({
+                  id: user.id,
+                  username: user.username,
+                  passwordHash: user.password_hash,
+                });
+              } catch {
+                redirect("/login?msg=login_failed");
+              }
+
               const token = await signToken({ id: user.id, username: user.username });
               await setAuthCookie(token);
               redirect("/colonies");
@@ -103,7 +141,10 @@ export default async function LoginPage({
             className="space-y-5"
           >
             <div>
-              <label htmlFor="username" className="block text-sm font-medium mb-2 text-foreground/80">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium mb-2 text-foreground/80"
+              >
                 用户名
               </label>
               <input
@@ -118,7 +159,10 @@ export default async function LoginPage({
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2 text-foreground/80">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium mb-2 text-foreground/80"
+              >
                 密码
               </label>
               <input
@@ -142,7 +186,10 @@ export default async function LoginPage({
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             还没有账号？{" "}
-            <Link href="/register" className="text-primary font-medium hover:text-primary-dark transition-colors">
+            <Link
+              href="/register"
+              className="text-primary font-medium hover:text-primary-dark transition-colors"
+            >
               注册账号
             </Link>
           </p>

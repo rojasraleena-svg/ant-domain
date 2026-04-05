@@ -1,7 +1,8 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { summarizeLog } from "@/lib/ai";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { summarizeLog } from "@/lib/ai";
 
 export const metadata = {
   title: "写日志",
@@ -32,11 +33,10 @@ export default async function NewLogPage({
 
   const { id } = await params;
 
-  // 加载蚁群信息（含物种）
   const { data: colony, error: colonyError } = await db
     .from("colonies")
     .select("*, species(name_cn, name_lat)")
-    .eq("id", parseInt(id))
+    .eq("id", parseInt(id, 10))
     .eq("user_id", user.id)
     .single();
 
@@ -44,16 +44,15 @@ export default async function NewLogPage({
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8">
-      {/* 面包屑 */}
       <nav className="text-sm text-muted-foreground mb-6">
-        <a href="/colonies" className="hover:text-foreground">
+        <Link href="/colonies" className="hover:text-foreground">
           我的蚁群
-        </a>{" "}
-        →{" "}
-        <a href={`/colonies/${id}`} className="hover:text-foreground">
+        </Link>{" "}
+        {"->"}{" "}
+        <Link href={`/colonies/${id}`} className="hover:text-foreground">
           {colony.name}
-        </a>{" "}
-        → 写日志
+        </Link>{" "}
+        {"->"} 写日志
       </nav>
 
       <div className="mb-6">
@@ -66,8 +65,9 @@ export default async function NewLogPage({
       <form
         action={async (formData) => {
           "use server";
-          const user = await getSession();
-          if (!user) redirect("/login");
+
+          const currentUser = await getSession();
+          if (!currentUser) redirect("/login");
 
           const title = formData.get("title") as string;
           const content = formData.get("content") as string;
@@ -85,10 +85,9 @@ export default async function NewLogPage({
             : null;
           const abnormalType = formData.get("abnormalType") as string;
 
-          // 1. 写入日志
           const { error: logError } = await db.from("colony_logs").insert({
-            colony_id: parseInt(id),
-            user_id: user.id,
+            colony_id: parseInt(id, 10),
+            user_id: currentUser.id,
             date: new Date().toISOString(),
             title,
             content: content || null,
@@ -110,17 +109,15 @@ export default async function NewLogPage({
             );
           }
 
-          // 获取刚插入的日志 ID（用于精确更新 AI 摘要）
           const { data: newLog } = await db
             .from("colony_logs")
             .select("id")
-            .eq("colony_id", parseInt(id))
+            .eq("colony_id", parseInt(id, 10))
             .eq("title", title)
             .order("created_at", { ascending: false })
             .limit(1)
             .single();
 
-          // 2. 调用 AI 生成摘要（异步，失败不阻塞）
           try {
             const aiResult = await summarizeLog({
               colonyName: colony.name,
@@ -138,7 +135,6 @@ export default async function NewLogPage({
               abnormalType: abnormalType || undefined,
             });
 
-            // 更新日志的 AI 摘要（使用精确 ID）
             if (newLog) {
               await db
                 .from("colony_logs")
@@ -149,7 +145,6 @@ export default async function NewLogPage({
                 .eq("id", newLog.id);
             }
 
-            // 如果 AI 推断出新阶段，更新蚁群的当前阶段
             if (
               aiResult.inferredStage &&
               aiResult.inferredStage !== colony.current_stage
@@ -157,18 +152,16 @@ export default async function NewLogPage({
               await db
                 .from("colonies")
                 .update({ current_stage: aiResult.inferredStage })
-                .eq("id", parseInt(id));
+                .eq("id", parseInt(id, 10));
             }
           } catch (aiError) {
             console.error("AI 摘要生成失败:", aiError);
-            // 不阻塞用户流程
           }
 
           redirect(`/colonies/${id}`);
         }}
         className="space-y-5 rounded-lg border bg-card p-6"
       >
-        {/* 日志标题 */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium mb-1.5">
             今天观察到什么？ *
@@ -183,7 +176,6 @@ export default async function NewLogPage({
           />
         </div>
 
-        {/* 详细描述 */}
         <div>
           <label htmlFor="content" className="block text-sm font-medium mb-1.5">
             详细记录
@@ -198,7 +190,6 @@ export default async function NewLogPage({
           />
         </div>
 
-        {/* 当前阶段 */}
         <div>
           <label htmlFor="stage" className="block text-sm font-medium mb-1.5">
             当前阶段
@@ -221,7 +212,6 @@ export default async function NewLogPage({
           </select>
         </div>
 
-        {/* 幼体状态 */}
         <fieldset className="rounded-lg border p-4">
           <legend className="text-sm font-medium mb-3">幼体状态</legend>
           <div className="grid grid-cols-3 gap-4">
@@ -267,10 +257,12 @@ export default async function NewLogPage({
           </div>
         </fieldset>
 
-        {/* 环境与喂食 */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="feedingRecord" className="block text-sm font-medium mb-1.5">
+            <label
+              htmlFor="feedingRecord"
+              className="block text-sm font-medium mb-1.5"
+            >
               喂食记录
             </label>
             <input
@@ -316,11 +308,8 @@ export default async function NewLogPage({
           </div>
         </div>
 
-        {/* 异常情况 */}
         <div>
-          <label className="block text-sm font-medium mb-1.5">
-            异常情况
-          </label>
+          <label className="block text-sm font-medium mb-1.5">异常情况</label>
           <select
             name="abnormalType"
             className="w-full max-w-xs rounded-lg border bg-background px-4 py-2 text-sm"
@@ -340,12 +329,12 @@ export default async function NewLogPage({
           >
             保存日志 + AI 分析
           </button>
-          <a
+          <Link
             href={`/colonies/${id}`}
             className="rounded-lg border px-6 py-2 text-sm hover:bg-accent"
           >
             取消
-          </a>
+          </Link>
         </div>
       </form>
     </div>
