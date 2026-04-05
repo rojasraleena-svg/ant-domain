@@ -8,7 +8,6 @@ export function AuthButton() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 检查 cookie 是否存在来判断登录状态
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/me");
@@ -48,18 +47,26 @@ export function AuthButton() {
   }
 
   return (
-    <form
-      action={async () => {
-        await fetch("/api/auth/logout", { method: "POST" });
-        window.location.href = "/";
-      }}
-    >
-      <button
-        type="submit"
-        className="text-sm text-foreground/60 transition-colors hover:text-foreground"
+    <div className="flex items-center gap-4">
+      <div className="flex items-center text-sm gap-2 text-foreground/60">
+        <span className="font-medium text-foreground">{user.username}</span>
+      </div>
+      <Link href="/settings" className="text-sm text-foreground/60 transition-colors hover:text-foreground">
+        设置
+      </Link>
+      <form
+        action={async () => {
+          await fetch("/api/auth/logout", { method: "POST" });
+          window.location.href = "/";
+        }}
       >
-        {user.username} · 退出
-      </button>
-    </form>
+        <button
+          type="submit"
+          className="text-sm text-foreground/60 transition-colors hover:text-foreground"
+        >
+          退出
+        </button>
+      </form>
+    </div>
   );
 }

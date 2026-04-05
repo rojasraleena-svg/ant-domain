@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { summarizeLog } from "@/lib/ai";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { SubmitButton } from "@/app/colonies/components/submit-button";
 
 export const metadata = {
   title: "写日志",
@@ -323,15 +324,15 @@ export default async function NewLogPage({
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
+          <SubmitButton
+            loadingText="保存与分析中..."
             className="rounded-lg bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90"
           >
             保存日志 + AI 分析
-          </button>
+          </SubmitButton>
           <Link
             href={`/colonies/${id}`}
-            className="rounded-lg border px-6 py-2 text-sm hover:bg-accent"
+            className="rounded-lg border px-6 py-2 text-sm hover:bg-accent flex items-center justify-center"
           >
             取消
           </Link>

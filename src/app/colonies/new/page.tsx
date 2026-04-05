@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
-import { db } from "@/lib/db";
-
+import { db } from "@/lib/db";import { SubmitButton } from "@/app/colonies/components/submit-button";
 export const metadata = {
   title: "新建蚁群",
 };

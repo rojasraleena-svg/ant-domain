@@ -1,34 +1,28 @@
-# Ant Domain (蚁域) OpenClaw 接入指南
+# 蚁域 (Ant Domain) API
 
-本指南描述如何通过 API Key 认证接入蚁域，允许 OpenClaw 等工具操作用户的蚁群数据。
+> 让 OpenClaw 等 AI 工具直接接入蚁域进行数据操作
 
-## 实现状态
+## 快速开始
 
-- ✅ API Key 管理接口 (`/api/keys`)
-- ✅ 蚁群列表接口 (`/api/colonies`)
-- ✅ 蚁群详情接口 (`/api/colonies/:id`)
-- ✅ 蚁群日志接口 (`/api/colonies/:id/logs`)
-- ⚠️ Settings 页面 UI（待实现）
-- ⚠️ 物种公开 API（待实现）
+### 1. 获取 API Key
 
-## 获取 API Key
+1. 登录蚁域 -> 访问右上方「设置」页面（`/settings`）
+2. 在「API 密钥」区域创建新 Key
+3. **立即保存**，关闭后将无法再次查看完整 Key。
 
-> ⚠️ Settings 页面 UI 尚未实现。目前需要通过 SQL 直接插入 API Key。
+### 2. 调用 API
 
-1. 登录蚁域
-2. 访问 `/settings` 页面（功能开发中）
-3. 在「API Keys」区域创建新 Key
-4. **重要**：创建后会显示完整 Key，请立即保存，关闭后无法再次查看
-
-## API 认证
-
-所有 API 请求通过 HTTP Header 传递 API Key：
-
+**认证**：所有的 API 请求在 Header 中携带 API Key：
 ```
-x-api-key: ant_your_api_key_here
+x-api-key: ant_您的API密钥（32字符左右）
 ```
 
-## API Endpoints
+**示例请求**：
+```json
+GET /api/colonies/1/logs
+```
+
+## API 列表
 
 ### 获取蚁群列表
 
@@ -204,7 +198,7 @@ GET /api/species/:id
 
 ```json
 {
-  "apiEndpoint": "https://your-domain.vercel.app/api",
+  "apiEndpoint": "https://ant.gqy20.top/api",
   "headers": {
     "Content-Type": "application/json",
     "x-api-key": "ant_your_api_key_here"
