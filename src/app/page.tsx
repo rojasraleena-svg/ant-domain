@@ -66,10 +66,10 @@ export default async function HomePage() {
             <div className="relative w-full aspect-[4/5] sm:aspect-[4/3] lg:aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-2xl group">
               <div className="absolute inset-0 bg-gradient-to-tr from-background/90 via-background/20 to-transparent z-10 pointer-events-none" />
               
-              {/* 高亮微距图 - 使用 Unsplash 素材 */}
-              <img 
-                src="https://images.unsplash.com/photo-1544640808-32cb4f68696d?auto=format&fit=crop&q=80&w=1200" 
-                alt="Macro Ant Illustration" 
+              {/* AI 生成微距图 - MiniMax T2I */}
+              <img
+                src="/images/hero-ant-macro.jpg"
+                alt="Macro Ant Illustration"
                 className="w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110"
               />
               
