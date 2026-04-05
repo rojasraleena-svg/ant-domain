@@ -43,28 +43,28 @@ export interface AntPromptOptions {
 }
 
 const VIEW_LABELS: Record<string, string> = {
-  dorsal: "背视图 (dorsal view)",
-  lateral: "侧视图 (lateral view)",
-  frontal: "头面部视图 (frontal view)",
-  habitat: "生态环境视角 (in natural habitat)",
+  dorsal: "shown from above, full dorsal view",
+  lateral: "side profile view, lateral perspective",
+  frontal: "close-up front view showing head and antennae",
+  habitat: "in its natural habitat environment",
 };
 
 const STYLE_TEMPLATES: Record<string, string> = {
   scientific:
-    "scientific illustration style, clean white background, labeled anatomical features, textbook quality, ultra-detailed line art with subtle color",
+    "clean scientific illustration on pure white background, precise linework with subtle color shading, encyclopedia plate style",
   macro_photo:
-    "extreme macro photography, shallow depth of field, studio lighting, photorealistic, showing fine texture of exoskeleton and setae (hairs), National Geographic quality",
+    "stunning close-up macro photography, sharp focus, soft studio lighting, incredible detail of body texture, professional nature photography",
   watercolor:
-    "delicate watercolor painting, natural history illustration style, soft colors, artistic but scientifically accurate, vintage field guide aesthetic",
+    "gentle hand-painted watercolor illustration, soft natural tones, vintage naturalist field journal aesthetic",
   realistic:
-    "photorealistic digital art, highly detailed, natural lighting, lifelike appearance, 8K resolution quality",
+    "beautifully rendered digital artwork, photorealistic quality, warm natural lighting, gallery-worthy detail",
 };
 
 const CASTE_LABELS: Record<string, string> = {
-  worker: "worker ant (工蚁)",
-  queen: "queen ant (蚁后)",
-  male: "male ant (雄蚁)",
-  soldier: "soldier ant (兵蚁)",
+  worker: "sterile female caste, typical size",
+  queen: "reproductive female, larger body with wings scars visible",
+  male: "alate male with wings",
+  soldier: "major caste with enlarged head and mandibles",
 };
 
 // ---- 核心：调用 MiniMax T2I API ----
@@ -189,16 +189,19 @@ async function persistImagesToStorage(
  * 构建蚂蚁物种的专业文生图 Prompt
  */
 export function buildAntPrompt(opts: AntPromptOptions): string {
-  const casteText = opts.caste ? CASTE_LABELS[opts.caste] || opts.caste : "worker ant (工蚁)";
-  const viewText = opts.view ? VIEW_LABELS[opts.view] || opts.view : "dorsal view (背视图)";
+  const casteText = opts.caste ? CASTE_LABELS[opts.caste] || "" : "";
+  const viewText = opts.view ? VIEW_LABELS[opts.view] || "" : "shown from above";
   const styleText = opts.style ? STYLE_TEMPLATES[opts.style] || STYLE_TEMPLATES.scientific : STYLE_TEMPLATES.scientific;
 
-  return [
-    `A detailed ${casteText} of the ant species ${opts.nameLat} (${opts.nameCn}),`,
-    `${viewText},`,
-    styleText + ",",
-    "ultra-high detail, professional entomological reference image.",
-  ].join(" ");
+  // 构建自然语言描述，避免混入中文和敏感词汇
+  const parts = [
+    `A beautiful ${opts.nameLat} ant,`,
+    casteText,
+    `${viewText}.`,
+    styleText,
+  ];
+
+  return parts.filter(Boolean).join(" ");
 }
 
 // ---- 对外接口：完整生成流程 ----

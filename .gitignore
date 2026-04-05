@@ -83,3 +83,4 @@ PROFILE
 .PROFILE.*
 
 .vercel
+.env*.local
