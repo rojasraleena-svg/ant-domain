@@ -4,6 +4,12 @@ import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { verifyPassword, signToken, setAuthCookie } from "@/lib/auth";
 
+const LOGIN_MESSAGES: Record<string, string> = {
+  empty_fields: "请填写用户名和密码",
+  invalid_credentials: "用户名或密码错误",
+  registered: "注册成功，请登录",
+};
+
 export const metadata = {
   title: "登录",
 };
@@ -23,12 +29,14 @@ function AntDecorative() {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ msg?: string }>;
 }) {
   const user = await getSession();
   if (user) redirect("/colonies");
 
-  const { message } = await searchParams;
+  const { msg } = await searchParams;
+  const message = msg ? LOGIN_MESSAGES[msg] : undefined;
+  const isSuccess = msg === "registered";
 
   return (
     <div className="min-h-[calc(100vh-3.75rem)] flex items-center justify-center px-4 relative overflow-hidden bg-gradient-warm pattern-dots">
@@ -56,7 +64,11 @@ export default async function LoginPage({
           </div>
 
           {message && (
-            <div className="mb-6 rounded-xl bg-destructive/8 border border-destructive/15 p-4 text-sm text-destructive animate-[fadeInUp_0.3s_ease-out]">{message}</div>
+            <div className={`mb-6 rounded-xl border p-4 text-sm animate-[fadeInUp_0.3s_ease-out] ${
+              isSuccess
+                ? "bg-primary/8 border-primary/20 text-primary"
+                : "bg-destructive/8 border-destructive/15 text-destructive"
+            }`}>{message}</div>
           )}
 
           <form
@@ -66,7 +78,7 @@ export default async function LoginPage({
               const password = formData.get("password") as string;
 
               if (!username || !password) {
-                redirect(`/login?message=${encodeURIComponent("请填写用户名和密码")}`);
+                redirect("/login?msg=empty_fields");
               }
 
               const { data: user, error } = await db
@@ -76,12 +88,12 @@ export default async function LoginPage({
                 .single();
 
               if (error || !user) {
-                redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+                redirect("/login?msg=invalid_credentials");
               }
 
               const valid = await verifyPassword(password, user.password_hash);
               if (!valid) {
-                redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+                redirect("/login?msg=invalid_credentials");
               }
 
               const token = await signToken({ id: user.id, username: user.username });
