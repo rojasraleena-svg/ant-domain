@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { verifyPassword, signToken, setAuthCookie } from "@/lib/auth";
 
 export const metadata = {
   title: "登录",
@@ -11,14 +13,8 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ message?: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect("/colonies");
-  }
+  const user = await getSession();
+  if (user) redirect("/colonies");
 
   const { message } = await searchParams;
 
@@ -41,18 +37,33 @@ export default async function LoginPage({
         <form
           action={async (formData) => {
             "use server";
-            const email = formData.get("email") as string;
+            const username = formData.get("username") as string;
             const password = formData.get("password") as string;
-            const supabase = await createClient();
 
-            const { error } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-
-            if (error) {
-              redirect(`/login?message=${encodeURIComponent(error.message)}`);
+            if (!username || !password) {
+              return redirect(`/login?message=${encodeURIComponent("请填写用户名和密码")}`);
             }
+
+            // 查找用户
+            const { data: user, error } = await db
+              .from("users")
+              .select("id, username, password_hash")
+              .eq("username", username)
+              .single();
+
+            if (error || !user) {
+              return redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+            }
+
+            // 验证密码
+            const valid = await verifyPassword(password, user.password_hash);
+            if (!valid) {
+              return redirect(`/login?message=${encodeURIComponent("用户名或密码错误")}`);
+            }
+
+            // 签发 token 并设置 cookie
+            const token = await signToken({ id: user.id, username: user.username });
+            await setAuthCookie(token);
 
             redirect("/colonies");
           }}
@@ -60,19 +71,19 @@ export default async function LoginPage({
         >
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium mb-1.5"
             >
-              邮箱
+              用户名
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="username"
+              name="username"
+              type="text"
               required
-              placeholder="your@email.com"
+              placeholder="输入用户名"
               className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
 

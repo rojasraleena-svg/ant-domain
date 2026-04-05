@@ -1,26 +1,14 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 export const metadata = {
   title: "新建蚁群",
 };
 
 export default async function NewColonyPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // TODO: 加载物种列表供选择
-  // const { data: species } = await supabase
-  //   .from("species")
-  //   .select("id, name_cn, name_lat")
-  //   .eq("status", 1)
-  //   .order("sort_order");
+  const user = await getSession();
+  if (!user) redirect("/login");
 
   return (
     <div className="container mx-auto max-w-2xl px-4 py-8">
@@ -34,11 +22,7 @@ export default async function NewColonyPage() {
       <form
         action={async (formData) => {
           "use server";
-          const supabase = await createClient();
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-
+          const user = await getSession();
           if (!user) redirect("/login");
 
           const name = formData.get("name") as string;
@@ -49,7 +33,7 @@ export default async function NewColonyPage() {
           );
           const notes = formData.get("notes") as string;
 
-          const { error } = await supabase.from("colonies").insert({
+          const { error } = await db.from("colonies").insert({
             user_id: user.id,
             name,
             species_id: speciesId,
@@ -93,7 +77,6 @@ export default async function NewColonyPage() {
             className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
           >
             <option value="">选择物种...</option>
-            {/* TODO: 从数据库动态加载物种选项 */}
             <option value="1">日本弓背蚁 - Camponotus japonicus</option>
             <option value="2">尼科巴弓背蚁 - Camponotus nicobarensis</option>
             <option value="6">拟黑多刺蚁 - Polyrhachis dives</option>
@@ -108,7 +91,7 @@ export default async function NewColonyPage() {
         <div>
           <label htmlFor="foundedDate" className="block text-sm font-medium mb-1.5">
             建档日期 *
-          </label>
+        </label>
           <input
             id="foundedDate"
             name="foundedDate"

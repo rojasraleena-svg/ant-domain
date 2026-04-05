@@ -1,28 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { useEffect, useState } from "react";
 
 export function AuthButton() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ username: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    // 检查 cookie 是否存在来判断登录状态
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        }
+      } catch {
+        // 未登录
+      }
       setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    };
+    checkAuth();
   }, []);
 
   if (loading) {
@@ -51,8 +50,7 @@ export function AuthButton() {
   return (
     <form
       action={async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
+        await fetch("/api/auth/logout", { method: "POST" });
         window.location.href = "/";
       }}
     >
@@ -60,7 +58,7 @@ export function AuthButton() {
         type="submit"
         className="text-sm text-foreground/60 transition-colors hover:text-foreground"
       >
-        退出
+        {user.username} · 退出
       </button>
     </form>
   );

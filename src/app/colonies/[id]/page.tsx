@@ -1,30 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 
 export default async function ColonyDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getSession();
   if (!user) redirect("/login");
 
   const { id } = await params;
-
-  // TODO: 加载蚁群详情
-  // const { data: colony } = await supabase
-  //   .from("colonies")
-  //   .select("*, species(name_cn, name_lat)")
-  //   .eq("id", id)
-  //   .eq("user_id", user.id)
-  //   .single();
-  // if (!colony) notFound();
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
@@ -75,7 +62,6 @@ export default async function ColonyDetailPage({
           </Link>
         </div>
         <div className="space-y-3">
-          {/* TODO: 加载日志列表 */}
           <div className="rounded-lg border bg-card p-4">
             <p className="text-sm text-muted-foreground">暂无日志记录</p>
           </div>

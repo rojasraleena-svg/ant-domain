@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { hashPassword } from "@/lib/auth";
 
 export const metadata = {
   title: "注册",
@@ -11,14 +13,8 @@ export default async function RegisterPage({
 }: {
   searchParams: Promise<{ message?: string }>;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect("/colonies");
-  }
+  const user = await getSession();
+  if (user) redirect("/colonies");
 
   const { message } = await searchParams;
 
@@ -41,30 +37,58 @@ export default async function RegisterPage({
         <form
           action={async (formData) => {
             "use server";
-            const email = formData.get("email") as string;
+            const username = (formData.get("username") as string).trim();
             const password = formData.get("password") as string;
             const confirmPassword = formData.get("confirmPassword") as string;
-            const supabase = await createClient();
 
+            // 校验用户名
+            if (!username || username.length < 2) {
+              return redirect(
+                `/register?message=${encodeURIComponent("用户名至少需要2个字符")}`
+              );
+            }
+            if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
+              return redirect(
+                `/register?message=${encodeURIComponent("用户名只能包含字母、数字、下划线和中文")}`
+              );
+            }
+
+            // 校验密码
+            if (password.length < 6) {
+              return redirect(
+                `/register?message=${encodeURIComponent("密码至少需要6个字符")}`
+              );
+            }
             if (password !== confirmPassword) {
-              redirect(
+              return redirect(
                 `/register?message=${encodeURIComponent("两次输入的密码不一致")}`
               );
             }
 
-            if (password.length < 6) {
-              redirect(
-                `/register?message=${encodeURIComponent("密码至少需要6个字符")}`
+            // 检查用户名是否已存在
+            const { data: existing } = await db
+              .from("users")
+              .select("id")
+              .eq("username", username)
+              .single();
+
+            if (existing) {
+              return redirect(
+                `/register?message=${encodeURIComponent("该用户名已被使用")}`
               );
             }
 
-            const { error } = await supabase.auth.signUp({
-              email,
-              password,
+            // 创建用户
+            const passwordHash = await hashPassword(password);
+            const { error } = await db.from("users").insert({
+              username,
+              password_hash: passwordHash,
             });
 
             if (error) {
-              redirect(`/register?message=${encodeURIComponent(error.message)}`);
+              return redirect(
+                `/register?message=${encodeURIComponent("注册失败，请稍后重试")}`
+              );
             }
 
             redirect("/login?message=注册成功，请登录");
@@ -73,19 +97,21 @@ export default async function RegisterPage({
         >
           <div>
             <label
-              htmlFor="email"
+              htmlFor="username"
               className="block text-sm font-medium mb-1.5"
             >
-              邮箱
+              用户名
             </label>
             <input
-              id="email"
-              name="email"
-              type="email"
+              id="username"
+              name="username"
+              type="text"
               required
-              placeholder="your@email.com"
+              placeholder="2-20 位，支持中英文和数字"
+              minLength={2}
+              maxLength={20}
               className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
 
