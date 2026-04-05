@@ -10,6 +10,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "db:seed:formicinae": "node scripts/seed-formicinae-extension.mjs",
+    "db:seed:images": "node scripts/seed-specimen-images.mjs",
     "db:sync-auth-users": "node scripts/sync-auth-users.mjs"
   },
   "dependencies": {

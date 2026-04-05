@@ -57,6 +57,7 @@ model Species {
   // 关联
   colonies          Colony[]
   stageDiffs        StageSpeciesDiff[]
+  specimenImages    SpecimenImage[]
 
   @@index([subfamily])
   @@index([genus])
@@ -179,4 +180,32 @@ model StageSpeciesDiff {
 
   @@unique([stageKey, genus])
   @@map("stage_species_diffs")
+}
+
+// ============================================
+// 6. 标本图片表（GBIF/iNaturalist 来源）
+// ============================================
+model SpecimenImage {
+  id            Int       @id @default(autoincrement())
+  speciesId     Int       @map("species_id")
+  url           String
+  thumbnailUrl  String?   @map("thumbnail_url")
+  viewType      String    @default("dorsal") @map("view_type")
+  isPrimary     Boolean   @default(false) @map("is_primary")
+  source        String    @default("gbif")
+  sourceId      String?   @map("source_id")
+  photographer  String?
+  license       String?
+  datasetName   String?   @map("dataset_name")
+  country       String?
+  sortOrder     Int       @default(0) @map("sort_order")
+  status        Int       @default(1)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // 关联
+  species       Species   @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@index([speciesId])
+  @@map("specimen_images")
 }

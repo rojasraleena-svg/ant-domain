@@ -66,3 +66,33 @@ export async function getLifeStageByKey(key: string) {
   if (error) throw error;
   return data;
 }
+
+// 获取物种的标本图片列表
+export async function getSpecimenImages(speciesId: number) {
+  const { data, error } = await publicDb
+    .from("specimen_images")
+    .select("*")
+    .eq("species_id", speciesId)
+    .eq("status", 1)
+    .order("is_primary", { ascending: false })
+    .order("sort_order", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
+// 获取物种的主图（单张）
+export async function getPrimarySpecimenImage(speciesId: number) {
+  const { data, error } = await publicDb
+    .from("specimen_images")
+    .select("*")
+    .eq("species_id", speciesId)
+    .eq("is_primary", true)
+    .eq("status", 1)
+    .single();
+
+  // 没有主图时返回 null，不算错误
+  if (error && error.code === "PGRST116") return null;
+  if (error) throw error;
+  return data;
+}

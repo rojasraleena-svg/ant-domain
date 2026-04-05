@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSpeciesById } from "@/lib/public-data";
+import { getSpeciesById, getSpecimenImages } from "@/lib/public-data";
 import { getDietLabel, getNestTypeLabel } from "@/lib/labels";
+import { SpecimenImageGallery } from "@/components/specimen-image-gallery";
 
 export async function generateMetadata({
   params,
@@ -40,8 +41,10 @@ export default async function SpeciesDetailPage({
   const { id } = await params;
 
   let sp;
+  let images = [];
   try {
     sp = await getSpeciesById(parseInt(id, 10));
+    images = await getSpecimenImages(sp.id);
   } catch {
     notFound();
   }
@@ -85,6 +88,9 @@ export default async function SpeciesDetailPage({
           <span className="text-foreground font-medium">{sp.name_cn}</span>
         </div>
       </div>
+
+      {/* 标本图像画廊 */}
+      {images.length > 0 && <SpecimenImageGallery images={images} />}
 
       <section className="mb-8 rounded-lg border bg-card p-6">
         <h2 className="font-semibold text-lg mb-4">基本信息</h2>
