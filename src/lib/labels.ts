@@ -35,6 +35,7 @@ export const DIET_LABELS: Record<string, string> = {
 
 // ========== 巢型（支持组合值如 "test_tube / gypsum"） ==========
 export const NEST_TYPE_LABELS: Record<string, string> = {
+  // 基础巢型
   test_tube: "试管",
   gypsum: "石膏板",
   plaster: "石膏",
@@ -42,6 +43,24 @@ export const NEST_TYPE_LABELS: Record<string, string> = {
   "3d_printed": "3D 打印",
   plant: "生态缸/植物巢",
   nesting: "正在筑巢中",
+  soil: "土巢",
+
+  // 蚁巢类型 (formicarium 系列)
+  formicarium: "蚁巢",
+  chambered_formicarium: "室式蚁巢",
+  desert_formicarium: "沙漠蚁巢",
+  urban_formicarium: "城市蚁巢",
+  micro_formicarium: "微型蚁巢",
+  locked_formicarium: "封闭式蚁巢",
+
+  // 土壤/自然巢型
+  deep_soil: "深层土巢",
+  wood_mixed: "木质混合巢",
+  branch_nest: "枝条巢",
+  arboreal_formicarium: "树栖蚁巢",
+
+  // 亚克力变体
+  small_acrylic: "小型亚克力",
 };
 
 // ========== 便捷函数 ==========
