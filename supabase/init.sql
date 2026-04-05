@@ -419,7 +419,7 @@ INSERT INTO life_stages (stage_key, name, name_en, order_index, definition, exte
   '📈',
   '#14B8A6',
   'Camponotus',
-  ["第一次搬巢通常发生在此阶段", "蛋白质食物对群体增长至关重要", "保持耐心，此阶段增长相对缓慢"]'::jsonb
+  '["第一次搬巢通常发生在此阶段", "蛋白质食物对群体增长至关重要", "保持耐心，此阶段增长相对缓慢"]'::jsonb
 ),
 (
   'steady_growth',
