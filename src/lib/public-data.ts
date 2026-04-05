@@ -105,6 +105,22 @@ const GENUS_CN_MAP: Record<string, string> = {
   Paratrechina: "立毛蚁属",
   Oecophylla: "织叶蚁属",
   Plagiolepis: "矮蚁属",
+  // 切叶蚁亚科新增
+  Pheidole: "大头蚁属",
+  Tetramorium: "铺道蚁属",
+  Crematogaster: "举腹蚁属",
+  Messor: "收获蚁属",
+  Monomorium: "小家蚁属",
+  Solenopsis: "火蚁属",
+  Aphaenogaster: "盘腹蚁属",
+  Meranoplus: "滑胸蚁属",
+  Temnothorax: "瘦蚁属",
+  Strumigenys: "颚蚁属",
+};
+
+const SUBFAMILY_CN_MAP: Record<string, string> = {
+  Formicinae: "蚁亚科",
+  Myrmicinae: "切叶蚁亚科",
 };
 
 export function getGenusCnName(genus: string): string {
@@ -150,4 +166,39 @@ export async function getStageDiff(stageKey: string, genus: string) {
   if (error && error.code === "PGRST116") return null;
   if (error) throw error;
   return data;
+}
+
+// 获取物种库统计信息（按亚科和属分组）
+export async function getSpeciesStats() {
+  const { data, error } = await publicDb
+    .from("species")
+    .select("subfamily, subfamily_cn, genus, genus_cn, id")
+    .eq("status", 1);
+
+  if (error) throw error;
+
+  // 按亚科分组
+  const bySubfamily: Record<string, { cn: string; genera: Array<{ genus: string; cn: string; count: number; beginnerCount: number }> }> } = {};
+  for (const sp of (data ?? [])) {
+    const sf = sp.subfamily || "unknown";
+    if (!bySubfamily[sf]) {
+      bySubfamily[sf] = {
+        cn: SUBFAMILY_CN_MAP[sf] || sf,
+        genera: [],
+      };
+    }
+    let g = bySubfamily[sf].genera.find((x) => x.genus === sp.genus);
+    if (!g) {
+      g = { genus: sp.genus, cn: GENUS_CN_MAP[sp.genus] || sp.genus, count: 0, beginnerCount: 0 };
+      bySubfamily[sf].genera.push(g);
+    }
+    g.count++;
+    if (sp.beginner_friendly) g.beginnerCount++;
+  }
+
+  // 总计
+  const total = data?.length ?? 0;
+  const totalBeginner = data?.filter((s) => s.beginner_friendly).length ?? 0;
+
+  return { total, totalBeginner, bySubfamily };
 }

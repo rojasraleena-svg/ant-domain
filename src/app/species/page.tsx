@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { getAllSpecies } from "@/lib/public-data";
+import { getAllSpecies, getSpeciesStats } from "@/lib/public-data";
 import { SpeciesSearch } from "./search-bar";
 
 export const metadata = {
   title: "资料库",
-  description: "蚁亚科蚂蚁物种资料库",
+  description: "蚁域蚂蚁物种资料库",
 };
 
 export default async function SpeciesPage({
@@ -12,9 +12,7 @@ export default async function SpeciesPage({
 }: {
   searchParams: Promise<{ q?: string; tag?: string }>;
 }) {
-  const params = await searchParams;
-  const query = params.q || "";
-  const tag = params.tag || "";
+  const { q: query, tag } = await searchParams;
 
   let species;
   if (query) {
@@ -25,6 +23,9 @@ export default async function SpeciesPage({
     species = await getAllSpecies();
   }
 
+  // 获取统计信息
+  const stats = await getSpeciesStats();
+
   return (
     <div className="container mx-auto px-4 py-8 sm:py-12">
       {/* 页面头部 */}
@@ -33,9 +34,47 @@ export default async function SpeciesPage({
           资料库
         </h1>
         <p className="mt-4 text-muted-foreground text-base">
-          蚁亚科（Formicinae）物种资料 · 探索蚂蚁的多样性
+          蚂类多样性百科 · 探索蚂蚁世界
         </p>
       </div>
+
+      {/* 类群统计卡片 */}
+      <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {/* 总计 */}
+        <div className="rounded-xl border bg-card p-5 text-center">
+          <p className="text-3xl font-bold text-primary">{stats.total}</p>
+          <p className="text-sm text-muted-foreground mt-1">物种总数</p>
+          {stats.totalBeginner > 0 && (
+            <p className="text-xs text-nature-green/70 mt-1">{stats.totalBeginner} 种新手友好</p>
+          )}
+        </div>
+
+        {/* 各亚科 */}
+        {Object.entries(stats.bySubfamily).map(([sf, info]) => (
+          <div key={sf} className="rounded-xl border bg-card p-4">
+            <p className="font-semibold text-sm">{info.cn}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{sf}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {info.genera.map((g) => (
+                <span key={g.genus} className="inline-block rounded-full bg-muted px-2 py-0.5 text-xs">
+                  {g.cn} <span className="text-muted-foreground ml-1">({g.count})</span>
+                </span>
+              ))}
+            </div>
+            {info.genera.some((g) => g.beginnerCount > 0) && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {info.genera
+                  .filter((g) => g.beginnerCount > 0)
+                  .map((g) => (
+                    <span key={g.genus} className="inline-block rounded-full bg-nature-green/10 text-nature-green dark:bg-nature-green/20 text-xs px-1.5 py-0.5">
+                      {g.cn}
+                    </span>
+                  ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
 
       {/* 搜索栏 */}
       <SpeciesSearch defaultValue={query} />
@@ -46,16 +85,63 @@ export default async function SpeciesPage({
           { label: "全部", tag: "" },
           { label: "新手推荐", tag: "beginner" },
           { label: "无需冬眠", tag: "no-hibernation" },
-          { label: "弓背蚁属", tag: "Camponotus" },
-          { label: "多刺蚁属", tag: "Polyrhachis" },
         ].map((item) => (
           <Link
             key={item.tag}
             href={item.tag ? `/species?tag=${item.tag}` : "/species"}
             className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 hover:bg-accent ${
-              params.tag === item.tag
+              tag === item.tag
                 ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/15"
                 : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+
+        {/* 亚科分隔 */}
+        <span className="mx-1 self-center text-border/30" aria-hidden />
+
+        {[
+          { label: "蚁亚科", tag: "Formicinae", sub: true },
+          { label: "切叶蚁亚科", tag: "Myrmicinae", sub: true },
+        ].map((item) => (
+          <Link
+            key={item.tag}
+            href={`/species?tag=${item.tag}`}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition-all duration-200 hover:bg-accent ${
+              tag === item.tag
+                ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/15"
+                : "border-border text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {item.label}
+          </Link>
+        ))}
+
+        {/* 属级快捷筛选 */}
+        <span className="mx-1 self-center text-border/30" aria-hidden />
+        {[
+          { label: "弓背蚁属", tag: "Camponotus" },
+          { label: "大头蚁属", tag: "Pheidole" },
+          { label: "铺道蚁属", tag: "Tetramorium" },
+          { label: "举腹蚁属", tag: "Crematogaster" },
+          { label: "收获蚁属", tag: "Messor" },
+          { label: "小家蚁属", tag: "Monomorium" },
+          { label: "火蚁属", tag: "Solenopsis" },
+          { label: "盘腹蚁属", tag: "Aphaenogaster" },
+          { label: "多刺蚁属", tag: "Polyrhachis" },
+          { label: "毛蚁属", tag: "Lasius" },
+          { label: "蚁属", tag: "Formica" },
+          { label: "立毛蚁属", tag: "Paratrechina" },
+        ].map((item) => (
+          <Link
+            key={item.tag}
+            href={`/species?tag=${item.tag}`}
+            className={`rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200 hover:bg-accent ${
+              tag === item.tag
+                ? "bg-primary/10 text-primary border-primary/50"
+                : "border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
             }`}
           >
             {item.label}
@@ -107,6 +193,8 @@ export default async function SpeciesPage({
                 </p>
               )}
               <div className="mt-3 pt-3 border-t border-border/40 flex gap-2 flex-wrap text-xs text-muted-foreground pl-4">
+                <span>{sp.subfamily_cn || sp.subfamily}</span>
+                <span className="text-border">·</span>
                 <span>{sp.genus_cn || sp.genus}</span>
                 <span className="text-border">·</span>
                 <span>{sp.temp_optimal ? `${sp.temp_optimal}°C` : `${sp.temp_min ?? ""}-${sp.temp_max ?? ""}°C`}</span>
@@ -150,21 +238,14 @@ async function filterSpeciesByTag(tag: string) {
 
   let query = db.from("species").select("*").eq("status", 1);
 
-  switch (tag) {
-    case "beginner":
-      query = query.eq("beginner_friendly", true);
-      break;
-    case "no-hibernation":
-      query = query.eq("need_hibernation", false);
-      break;
-    case "Camponotus":
-      query = query.eq("genus", "Camponotus");
-      break;
-    case "Polyrhachis":
-      query = query.eq("genus", "Polyrhachis");
-      break;
-    default:
-      break;
+  if (tag === "beginner") {
+    query = query.eq("beginner_friendly", true);
+  } else if (tag === "no-hibernation") {
+    query = query.eq("need_hibernation", false);
+  } else if (tag === "Formicinae" || tag === "Myrmicinae") {
+    query = query.eq("subfamily", tag);
+  } else if (["Camponotus","Pheidole","Tetramorium","Crematogaster","Messor","Monomorium","Solenopsis","Aphaenogaster","Meranoplus","Temnothorax","Strumigenys","Polyrhachis","Lasius","Formica","Paratrechina"].includes(tag)) {
+    query = query.eq("genus", tag);
   }
 
   const { data, error } = await query.order("sort_order", { ascending: true });
