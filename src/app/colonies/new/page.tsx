@@ -1,0 +1,169 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+
+export const metadata = {
+  title: "新建蚁群",
+};
+
+export default async function NewColonyPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // TODO: 加载物种列表供选择
+  // const { data: species } = await supabase
+  //   .from("species")
+  //   .select("id, name_cn, name_lat")
+  //   .eq("status", 1)
+  //   .order("sort_order");
+
+  return (
+    <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">新建蚁群</h1>
+        <p className="mt-1 text-muted-foreground">
+          创建你的蚁群档案，开始记录成长过程
+        </p>
+      </div>
+
+      <form
+        action={async (formData) => {
+          "use server";
+          const supabase = await createClient();
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+
+          if (!user) redirect("/login");
+
+          const name = formData.get("name") as string;
+          const speciesId = parseInt(formData.get("speciesId") as string);
+          const foundedDate = formData.get("foundedDate") as string;
+          const queenCount = parseInt(
+            (formData.get("queenCount") as string) || "1"
+          );
+          const notes = formData.get("notes") as string;
+
+          const { error } = await supabase.from("colonies").insert({
+            user_id: user.id,
+            name,
+            species_id: speciesId,
+            founded_date: foundedDate,
+            queen_count: queenCount,
+            notes: notes || null,
+          });
+
+          if (error) {
+            redirect(`/colonies/new?message=${encodeURIComponent(error.message)}`);
+          }
+
+          redirect("/colonies");
+        }}
+        className="space-y-6 rounded-lg border bg-card p-6"
+      >
+        {/* 蚁群名称 */}
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium mb-1.5">
+            蚁群名称 *
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            required
+            placeholder="如：小黑的日本弓背"
+            className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+          />
+        </div>
+
+        {/* 物种选择 */}
+        <div>
+          <label htmlFor="speciesId" className="block text-sm font-medium mb-1.5">
+            物种 *
+          </label>
+          <select
+            id="speciesId"
+            name="speciesId"
+            required
+            className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+          >
+            <option value="">选择物种...</option>
+            {/* TODO: 从数据库动态加载物种选项 */}
+            <option value="1">日本弓背蚁 - Camponotus japonicus</option>
+            <option value="2">尼科巴弓背蚁 - Camponotus nicobarensis</option>
+            <option value="6">拟黑多刺蚁 - Polyrhachis dives</option>
+            <option value="3">史密斯弓背蚁 - Camponotus smithi</option>
+            <option value="4">费氏弓背蚁 - Camponotus festinus</option>
+            <option value="5">宽结弓背蚁 - Camponotus tortuganus</option>
+            <option value="7">双齿多刺蚁 - Polyrhachis lamellidens</option>
+          </select>
+        </div>
+
+        {/* 建档日期 */}
+        <div>
+          <label htmlFor="foundedDate" className="block text-sm font-medium mb-1.5">
+            建档日期 *
+          </label>
+          <input
+            id="foundedDate"
+            name="foundedDate"
+            type="date"
+            required
+            defaultValue={new Date().toISOString().split("T")[0]}
+            className="w-full rounded-lg border bg-background px-4 py-2 text-sm"
+          />
+        </div>
+
+        {/* 蚁后数量 */}
+        <div>
+          <label htmlFor="queenCount" className="block text-sm font-medium mb-1.5">
+            蚁后数量
+          </label>
+          <input
+            id="queenCount"
+            name="queenCount"
+            type="number"
+            min={1}
+            defaultValue={1}
+            className="w-full max-w-[200px] rounded-lg border bg-background px-4 py-2 text-sm"
+          />
+        </div>
+
+        {/* 备注 */}
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium mb-1.5">
+            来源备注
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            maxLength={200}
+            placeholder="如：2024年7月婚飞采集于北京奥林匹克森林公园"
+            className="w-full rounded-lg border bg-background px-4 py-2 text-sm resize-none"
+          />
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <button
+            type="submit"
+            className="rounded-lg bg-primary px-6 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+          >
+            创建蚁群
+          </button>
+          <a
+            href="/colonies"
+            className="rounded-lg border px-6 py-2 text-sm hover:bg-accent"
+          >
+            取消
+          </a>
+        </div>
+      </form>
+    </div>
+  );
+}

@@ -1,0 +1,184 @@
+// 蚁域 MVP 数据模型
+// 基于 docs/MVP-Scope-v1.0.md 定义
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 1. 物种表（MVP: 蚁亚科 Formicinae）
+// ============================================
+model Species {
+  id                Int       @id @default(autoincrement())
+  nameCn            String    @map("name_cn")             // 中文名
+  nameLat           String    @unique @map("name_lat")     // 学名
+  subfamily         String    @map("subfamily")            // 亚科（MVP 固定 'Formicinae'）
+  genus             String    @map("genus")                // 属
+  subfamilyCn       String?   @map("subfamily_cn")         // 亚科中文名
+  genusCn           String?   @map("genus_cn")             // 属中文名
+  summary           String?   @db.Text                    // 简介
+  description       String?   @db.Text                    // 详细描述（Markdown）
+  workerSize        String?   @map("worker_size")          // 工蚁体长
+  queenSize         String?   @map("queen_size")           // 蚁后体长
+  bodyColor         String?   @map("body_color")           // 体色
+  keyFeatures       String?   @map("key_features")         // 关键识别特征
+  difficulty        Int       @default(1) @map("difficulty") // 饲养难度 1=低 2=中 3=高
+  beginnerFriendly  Boolean   @default(false) @map("beginner_friendly")
+  tempMin           Int?      @map("temp_min")
+  tempMax           Int?      @map("temp_max")
+  tempOptimal       String?   @map("temp_optimal")
+  humidityMin       Int?      @map("humidity_min")
+  humidityMax       Int?      @map("humidity_max")
+  humidityOptimal   String?   @map("humidity_optimal")
+  dietType          String?   @map("diet_type")            // omnivore/carnivore/sugar_feeder
+  nestType          String?   @map("nest_type")
+  needHibernation   Boolean   @default(false) @map("need_hibernation")
+  distribution      String?   @db.Text
+  habitat            String?   @db.Text
+  flightSeason      String?   @map("flight_season")
+  flightTime        String?   @map("flight_time")
+  colonyScale       String?   @map("colony_scale")
+  behaviorNotes     String?   @map("behavior_notes") @db.Text
+  faq               Json?                                 // 常见问题 JSON array
+  lifeStageOverview String?   @map("life_stage_overview") @db.Text
+  similarSpecies    Json?                                 // 相似物种 ID 列表
+  reference         String?   @db.Text
+  tags              Json?                                 // 标签 JSON array
+  coverImage        String?   @map("cover_image")         // 封面图 URL（Supabase Storage）
+  status            Int       @default(1)                  // 1=启用 0=禁用
+  sortOrder         Int       @default(0) @map("sort_order")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  // 关联
+  colonies          Colony[]
+  stageDiffs        StageSpeciesDiff[]
+
+  @@index([subfamily])
+  @@index([genus])
+  @@index([difficulty])
+  @@index([beginnerFriendly])
+  @@map("species")
+}
+
+// ============================================
+// 2. 生活史阶段表（MVP: 弓背蚁属 Camponotus）
+// ============================================
+model LifeStage {
+  id               Int      @id @default(autoincrement())
+  stageKey         String   @unique @map("stage_key")      // 阶段标识
+  name             String                                    // 阶段名称
+  nameEn           String?  @map("name_en")                 // 英文名
+  orderIndex       Int      @map("order_index")             // 时间轴排序
+  definition       String?  @db.Text                        // 阶段定义
+  externalFeatures String?  @map("external_features") @db.Text // 外显特征
+  commonBehaviors  String?  @map("common_behaviors") @db.Text // 常见行为
+  careNotes        String?  @map("care_notes") @db.Text     // 养殖注意事项
+  commonMistakes   String?  @map("common_mistakes") @db.Text // 常见误区
+  durationBase     String?  @map("duration_base")           // 基准持续时间
+  durationNote     String?  @map("duration_note")           // 物种差异说明
+  prevStage        String?  @map("prev_stage")              // 前一阶段 stageKey
+  nextStage        String?  @map("next_stage")              // 后一阶段 stageKey
+  milestone        Boolean  @default(false)                 // 是否里程碑
+  icon             String?
+  color            String?
+  targetGenus      String   @default("Camponotus") @map("target_genus")
+  tips             Json?                                     // 小贴士
+
+  // 关联
+  colonies         Colony[]                               // 当前所处阶段
+  colonyLogs       ColonyLog[]
+  stageDiffs       StageSpeciesDiff[]
+
+  @@index([orderIndex])
+  @@map("life_stages")
+}
+
+// ============================================
+// 3. 蚁群表
+// ============================================
+model Colony {
+  id            Int       @id @default(autoincrement())
+  userId        String    @map("user_id")                 // Supabase Auth user.id
+  name          String                                     // 蚁群名称
+  speciesId     Int       @map("species_id")
+  avatar        String?                                    // 封面图 URL
+  foundedDate   DateTime  @map("founded_date")             // 建档日期
+  acquiredDate  DateTime? @map("acquired_date")            // 获得日期
+  acquireMethod String?   @map("acquire_method")           // 获得方式
+  queenCount    Int       @default(1) @map("queen_count")
+  currentStage  String?   @map("current_stage")            // LifeStage.stageKey
+  workerRange   String?   @map("worker_range")             // 工蚁数量区间
+  notes         String?   @db.Text
+  status        Int       @default(1)                      // 1=正常 2=冬眠 3=已结束
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // 关联
+  species       Species   @relation(fields: [speciesId], references: [id])
+  logs          ColonyLog[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("colonies")
+}
+
+// ============================================
+// 4. 日志表
+// ============================================
+model ColonyLog {
+  id             Int       @id @default(autoincrement())
+  colonyId       Int       @map("colony_id")
+  userId         String    @map("user_id")
+  date           DateTime                                   // 记录日期
+  title          String                                     // 日志标题
+  content        String?   @db.Text                         // 日志正文
+  stage          String?                                     // 当时所处阶段 stageKey
+  workerCount    String?   @map("worker_count")             // 工蚁数量区间
+  eggStatus      String?   @map("egg_status")               // none/few/many/abundant
+  larvaStatus    String?   @map("larva_status")
+  pupaStatus     String?   @map("pupa_status")
+  feedingRecord  String?   @map("feeding_record")
+  temperature    Decimal?  @db.Decimal(4, 1)
+  humidity       Decimal?  @db.Decimal(5, 2)
+  abnormalType   String?   @map("abnormal_type")            // death/escape/disease/none
+  abnormalDetail String?   @map("abnormal_detail") @db.Text
+  images         Json?                                      // 图片 URL 列表
+  aiSummary      String?   @map("ai_summary")               // AI 摘要
+  eventType      String?   @map("event_type")               // 自动识别的事件类型
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  // 关联
+  colony         Colony    @relation(fields: [colonyId], references: [id])
+  stageRef       LifeStage? @relation(fields: [stage], references: [stageKey])
+
+  @@index([colonyId])
+  @@index([colonyId, date])
+  @@index([userId])
+  @@map("colony_logs")
+}
+
+// ============================================
+// 5. 阶段-物种差异表（预留扩展）
+// ============================================
+model StageSpeciesDiff {
+  id            Int      @id @default(autoincrement())
+  stageKey      String   @map("stage_key")
+  genus         String
+  duration      String?
+  tempNote      String?  @map("temp_note")
+  specialNotes  String?  @map("special_notes") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // 关联
+  species       Species[] @relation
+  stage         LifeStage @relation(fields: [stageKey], references: [stageKey])
+
+  @@unique([stageKey, genus])
+  @@map("stage_species_diffs")
+}
