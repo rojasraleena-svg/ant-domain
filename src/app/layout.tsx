@@ -30,11 +30,12 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full flex flex-col bg-muted/30">
+      <body className="min-h-full flex flex-col bg-background text-foreground bg-[url('/noise.png')]">
+        <div className="fixed inset-0 pointer-events-none z-[-1] bg-gradient-to-b from-transparent to-background/80" />
         <Header />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 relative z-0">{children}</main>
       </body>
     </html>
   );

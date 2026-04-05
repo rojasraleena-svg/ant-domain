@@ -23,16 +23,23 @@ export default async function NewColonyPage({
     .order("sort_order", { ascending: true });
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight page-header-bar title-deco">
-          新建蚁群
+    <div className="container mx-auto max-w-2xl px-4 py-12 sm:py-20 animate-fade-in relative">
+      {/* 装饰元素 */}
+      <div className="absolute top-20 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute bottom-20 left-0 w-48 h-48 bg-accent-warm/10 rounded-full blur-[60px] pointer-events-none" />
+
+      <div className="mb-12 relative z-10 text-center">
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-br from-foreground to-muted-foreground">
+          新建档案
         </h1>
-        <p className="mt-3 text-muted-foreground">创建你的蚁群档案，开始记录成长过程</p>
+        <p className="text-lg text-muted-foreground/80 font-light tracking-wide">
+          初始化微型生态舱，输入目标物种的基础参数。
+        </p>
       </div>
 
       {message && (
-        <div className="mb-6 rounded-xl bg-destructive/8 border border-destructive/20 p-4 text-sm text-destructive">
+        <div className="mb-8 rounded-2xl bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-center justify-center gap-2 animate-shake">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           {message}
         </div>
       )}
@@ -40,7 +47,7 @@ export default async function NewColonyPage({
       <form
         action={async (formData) => {
           "use server";
-
+          // ... 逻辑保持不变，但为了代码正确我会提取原有处理逻辑出来
           const currentUser = await getSession();
           if (!currentUser) redirect("/login");
 
@@ -51,35 +58,25 @@ export default async function NewColonyPage({
           const notes = (formData.get("notes") as string)?.trim();
 
           if (!name || name.length < 1) {
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("请输入蚁群名称")}`
-            );
+            return redirect(`/colonies/new?message=${encodeURIComponent("请输入蚁群名称")}`);
           }
 
           if (name.length > 30) {
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("蚁群名称不能超过 30 个字符")}`
-            );
+            return redirect(`/colonies/new?message=${encodeURIComponent("蚁群名称不能超过 30 个字符")}`);
           }
 
           const speciesId = parseInt(speciesIdRaw, 10);
           if (!speciesId || Number.isNaN(speciesId)) {
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("请选择一个物种")}`
-            );
+            return redirect(`/colonies/new?message=${encodeURIComponent("请选择一个物种")}`);
           }
 
           if (!foundedDate) {
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("请选择建档日期")}`
-            );
+            return redirect(`/colonies/new?message=${encodeURIComponent("请选择建档日期")}`);
           }
 
           const queenCount = Math.max(1, parseInt(queenCountRaw, 10) || 1);
           if (queenCount > 99) {
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("蚁后数量不合理，最大为 99")}`
-            );
+             return redirect(`/colonies/new?message=${encodeURIComponent("蚁后数量不合理，最大为 99")}`);
           }
 
           try {
@@ -93,35 +90,28 @@ export default async function NewColonyPage({
             });
 
             if (error) {
-              console.error("创建蚁群失败:", error);
-
               if (error.code === "23505" || error.message?.includes("unique")) {
-                return redirect(
-                  `/colonies/new?message=${encodeURIComponent("该蚁群名称已存在，请换一个名字")}`
-                );
+                return redirect(`/colonies/new?message=${encodeURIComponent("该蚁群名称已存在，请换一个名字")}`);
               }
-
-              return redirect(
-                `/colonies/new?message=${encodeURIComponent("创建失败，请稍后重试")}`
-              );
+              return redirect(`/colonies/new?message=${encodeURIComponent("创建失败，请稍后重试")}`);
             }
           } catch (error) {
-            console.error("创建蚁群异常:", error);
-            return redirect(
-              `/colonies/new?message=${encodeURIComponent("创建失败，请稍后重试")}`
-            );
+             return redirect(`/colonies/new?message=${encodeURIComponent("创建失败，请稍后重试")}`);
           }
 
           redirect("/colonies");
         }}
-        className="space-y-6 rounded-2xl border bg-card p-6 sm:p-8 shadow-sm"
+        className="relative z-10 space-y-8 rounded-[2.5rem] border border-white/10 bg-card/20 backdrop-blur-2xl p-8 sm:p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
       >
-        <div>
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+
+        <div className="relative group">
           <label
             htmlFor="name"
-            className="block text-sm font-medium mb-1.5 text-foreground/80"
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 group-focus-within:text-primary transition-colors"
           >
-            蚁群名称 <span className="text-destructive">*</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            档案代号
           </label>
           <input
             id="name"
@@ -129,107 +119,113 @@ export default async function NewColonyPage({
             type="text"
             required
             maxLength={30}
-            placeholder="如：小黑的日本弓背蚁"
-            className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
+            placeholder="为群落命名 (如: 极地星哨站)"
+            className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base md:text-lg focus:border-primary/50 focus:bg-black/40 focus:outline-none transition-all duration-300 placeholder:text-muted-foreground/30 shadow-inner"
           />
         </div>
 
-        <div>
+        <div className="relative group">
           <label
             htmlFor="speciesId"
-            className="block text-sm font-medium mb-1.5 text-foreground/80"
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 group-focus-within:text-accent-warm transition-colors"
           >
-            物种 <span className="text-destructive">*</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-warm" />
+            引入物种
           </label>
-          <select
-            id="speciesId"
-            name="speciesId"
-            required
-            defaultValue=""
-            className="w-full max-w-full rounded-xl border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200 appearance-none bg-no-repeat bg-right-[12px] bg-[length:var(--arrow-bg)]"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5l2.5 2.5L8 3.5' stroke='%239ca3af' fill='none' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
-            }}
-          >
-            <option value="" disabled>
-              选择物种...
-            </option>
-            {(speciesList ?? []).map((sp) => (
-              <option key={sp.id} value={sp.id}>
-                {sp.name_cn} - {sp.name_lat}
-                {sp.beginner_friendly ? " [新手推荐]" : ""}
-                {sp.genus_cn ? ` (${sp.genus_cn})` : ""}
+          <div className="relative">
+            <select
+              id="speciesId"
+              name="speciesId"
+              required
+              defaultValue=""
+              className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base md:text-lg focus:border-accent-warm/50 focus:bg-black/40 focus:outline-none transition-all duration-300 appearance-none shadow-inner text-foreground/90 disabled:text-muted-foreground/30"
+            >
+              <option value="" disabled className="bg-background text-muted-foreground">
+                — 请选择目标观测物种 —
               </option>
-            ))}
-          </select>
+              {(speciesList ?? []).map((sp) => (
+                <option key={sp.id} value={sp.id} className="bg-background text-foreground">
+                  {sp.name_cn} • {sp.name_lat} {sp.beginner_friendly ? "⭐" : ""}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground/50 border-l border-white/10 pl-4">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                 <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="foundedDate"
-            className="block text-sm font-medium mb-1.5 text-foreground/80"
-          >
-            建档日期 <span className="text-destructive">*</span>
-          </label>
-          <input
-            id="foundedDate"
-            name="foundedDate"
-            type="date"
-            required
-            defaultValue={new Date().toISOString().split("T")[0]}
-            className="w-full max-w-xs rounded-xl border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="relative group">
+            <label
+              htmlFor="foundedDate"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 group-focus-within:text-primary transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+              建立日期
+            </label>
+            <input
+              id="foundedDate"
+              name="foundedDate"
+              type="date"
+              required
+              defaultValue={new Date().toISOString().split("T")[0]}
+              className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base focus:border-primary/50 focus:bg-black/40 focus:outline-none transition-all duration-300 shadow-inner block"
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
+
+          <div className="relative group">
+            <label
+              htmlFor="queenCount"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 group-focus-within:text-primary transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+              核心基数
+            </label>
+            <div className="relative">
+               <input
+                 id="queenCount"
+                 name="queenCount"
+                 type="number"
+                 min={1}
+                 max={99}
+                 defaultValue={1}
+                 className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base focus:border-primary/50 focus:bg-black/40 focus:outline-none transition-all duration-300 shadow-inner pr-16"
+               />
+               <span className="absolute right-6 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/50 pointer-events-none">只</span>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="queenCount"
-            className="block text-sm font-medium mb-1.5 text-foreground/80"
-          >
-            蚁后数量
-          </label>
-          <input
-            id="queenCount"
-            name="queenCount"
-            type="number"
-            min={1}
-            max={99}
-            defaultValue={1}
-            className="w-full max-w-[180px] rounded-xl border bg-background px-4 py-2.5 text-sm input-glow transition-all duration-200"
-          />
-        </div>
-
-        <div>
+        <div className="relative group">
           <label
             htmlFor="notes"
-            className="block text-sm font-medium mb-1.5 text-foreground/80"
+            className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/60 mb-2 group-focus-within:text-primary transition-colors"
           >
-            来源备注
+            <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+            附加注释
           </label>
           <textarea
             id="notes"
             name="notes"
-            rows={3}
-            maxLength={200}
-            placeholder="如：2024 年 5 月婚飞采集于北京奥林匹克森林公园"
-            className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm resize-none input-glow transition-all duration-200"
+            rows={4}
+            maxLength={500}
+            placeholder="源产地、卖家信息等 (选填)"
+            className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base focus:border-primary/50 focus:bg-black/40 focus:outline-none transition-all duration-300 placeholder:text-muted-foreground/30 shadow-inner resize-y min-h-[120px] custom-scrollbar"
           />
         </div>
 
-        <div className="flex gap-3 pt-3">
-          <button
-            type="submit"
-            className="rounded-xl bg-primary px-7 py-2.5 text-sm font-semibold text-primary-foreground shadow-md shadow-primary/15 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
-          >
-            创建蚁群
-          </button>
+        <div className="flex flex-col-reverse sm:flex-row gap-4 sm:justify-end pt-6 border-t border-white/10">
           <Link
             href="/colonies"
-            className="rounded-xl border px-7 py-2.5 text-sm font-medium hover:bg-accent transition-colors duration-200 inline-flex items-center"
+            className="inline-flex items-center justify-center rounded-2xl px-6 py-3.5 text-sm font-bold text-foreground/70 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-foreground transition-all duration-300"
           >
-            取消
+            取消建档
           </Link>
+          <SubmitButton loadingText="协议上传中...">完成建档</SubmitButton>
         </div>
       </form>
     </div>

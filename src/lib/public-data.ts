@@ -172,13 +172,13 @@ export async function getStageDiff(stageKey: string, genus: string) {
 export async function getSpeciesStats() {
   const { data, error } = await publicDb
     .from("species")
-    .select("subfamily, subfamily_cn, genus, genus_cn, id")
+    .select("subfamily, subfamily_cn, genus, genus_cn, id, beginner_friendly")
     .eq("status", 1);
 
   if (error) throw error;
 
   // 按亚科分组
-  const bySubfamily: Record<string, { cn: string; genera: Array<{ genus: string; cn: string; count: number; beginnerCount: number }> }> } = {};
+  const bySubfamily: Record<string, { cn: string; genera: Array<{ genus: string; cn: string; count: number; beginnerCount: number }> }> = {};
   for (const sp of (data ?? [])) {
     const sf = sp.subfamily || "unknown";
     if (!bySubfamily[sf]) {

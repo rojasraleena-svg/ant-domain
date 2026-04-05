@@ -50,122 +50,133 @@ export default async function HomePage() {
   return (
     <div className="min-h-full">
       {/* ====== 沉浸式 Hero 区域 ====== */}
-      <section className="relative overflow-hidden bg-gradient-hero pattern-dots">
-        {/* 装饰性几何元素 */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          {/* 大圆装饰 */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute top-1/3 -left-10 w-60 h-60 rounded-full bg-accent-warm/5 blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-40 h-40 rounded-full bg-nature-green/5 blur-2xl" />
-          {/* 抽象线条 — 蚁路暗示 */}
-          <svg className="absolute bottom-0 left-0 w-full opacity-[0.04]" preserveAspectRatio="none" viewBox="0 0 1200 120">
-            <path d="M0,100 Q300,20 600,80 T1200,40" fill="none" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M0,110 Q400,50 800,90 T1200,60" fill="none" stroke="currentColor" strokeWidth="1" />
-          </svg>
-        </div>
+      <section className="relative overflow-hidden pt-20 pb-20 sm:pt-28 sm:pb-32 lg:pt-36 lg:pb-36 flex items-center justify-center">
+        {/* 装饰性背景光晕 */}
+        <div className="absolute top-0 right-0 w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none -z-10" />
+        <div className="absolute bottom-0 left-0 w-[40%] h-[40%] rounded-full bg-accent-warm/5 blur-[120px] pointer-events-none -z-10" />
 
-        <div className="relative container mx-auto px-4 py-20 sm:py-28 lg:py-36">
-          <div className="max-w-3xl mx-auto text-center animate-[fadeInUp_0.7s_ease-out]">
+        <div className="relative container mx-auto px-4 lg:px-8 z-10 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          
+          {/* 左侧：视觉图像 */}
+          <div className="relative w-full max-w-[500px] mx-auto lg:max-w-full">
+            {/* 发光底层 */}
+            <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-primary/20 via-accent-warm/10 to-transparent blur-2xl opacity-50 animate-pulse pointer-events-none" />
+            
+            {/* 图片容器 */}
+            <div className="relative w-full aspect-[4/5] sm:aspect-[4/3] lg:aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm shadow-2xl group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-background/90 via-background/20 to-transparent z-10 pointer-events-none" />
+              
+              {/* 高亮微距图 - 使用 Unsplash 素材 */}
+              <img 
+                src="https://images.unsplash.com/photo-1544640808-32cb4f68696d?auto=format&fit=crop&q=80&w=1200" 
+                alt="Macro Ant Illustration" 
+                className="w-full h-full object-cover transition-transform duration-[20s] group-hover:scale-110"
+              />
+              
+              {/* 视觉层点缀信息 */}
+              <div className="absolute bottom-8 left-8 z-20 pointer-events-none transition-transform duration-500 group-hover:-translate-y-2">
+                 <div className="w-10 h-0.5 bg-primary/80 mb-4" />
+                 <h3 className="text-xl font-bold tracking-tight text-white drop-shadow-md">微观生态</h3>
+                 <p className="text-xs uppercase tracking-widest text-white/60 mt-1">SOTD . OBSERVATORY</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧：文案与交互 */}
+          <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
             {/* 标签 */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-[pulse-glow_2s_ease-in-out_infinite]" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-5 py-2 text-xs font-bold uppercase tracking-widest text-primary/80 mb-8 shadow-inner">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping object-cover absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
               AI 原生蚂蚁观察平台
             </div>
 
             {/* 主标题 */}
-            <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95]">
-              <span className="text-gradient">蚁域</span>
+            <h1 className="text-7xl sm:text-[7rem] lg:text-[8.5rem] font-black tracking-tighter leading-[0.9] text-foreground/90 lg:-ml-2 mb-6 drop-shadow-xl flex flex-col gap-2">
+              <span>蚁<span className="text-transparent bg-clip-text bg-gradient-to-br from-primary to-accent-warm/70">域.</span></span>
             </h1>
 
             {/* 副标题 */}
-            <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto leading-relaxed">
-              集蚂蚁资料库、生活史科普与个人蚁群记录于一体
-              <br className="hidden sm:block" />
-              <span className="text-foreground/70">查资料、学阶段、记成长</span>
+            <p className="mt-2 text-xl sm:text-2xl text-muted-foreground/80 font-light tracking-wide max-w-lg">
+              数字显微镜下的微观帝国
+              <span className="block mt-4 text-sm font-medium text-muted-foreground/50 tracking-widest uppercase">查资料 · 学阶段 · 记成长</span>
             </p>
 
             {/* CTA 按钮组 */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="mt-12 flex flex-col sm:flex-row items-center justify-start gap-5">
               <Link
                 href="/species"
-                className="group inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/25 transition-all duration-300 hover:-translate-y-0.5"
+                className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full bg-primary px-8 py-4 font-bold text-primary-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-primary/30"
               >
+                <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-150%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(150%)]">
+                  <div className="relative h-full w-8 bg-white/20" />
+                </div>
                 开始探索
-                <IconArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                <IconArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
                 href="/colonies/new"
-                className="inline-flex items-center gap-2 rounded-xl border border-border px-8 py-3.5 text-sm font-semibold hover:bg-accent hover:border-primary/30 transition-all duration-300"
+                className="inline-flex items-center justify-center gap-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-8 py-4 font-bold text-foreground/80 transition-all duration-300 hover:bg-white/10 hover:text-foreground hover:scale-105 shadow-inner"
               >
-                创建蚁群档案
+                创建档案
               </Link>
             </div>
           </div>
         </div>
-
-        {/* 底部渐变过渡 */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
       </section>
 
       {/* ====== 功能入口卡片 ====== */}
-      <section className="container mx-auto px-4 -mt-10 relative z-10">
-        <div className="grid gap-5 sm:grid-cols-3 max-w-4xl mx-auto">
+      <section className="container mx-auto px-4 pb-24 relative z-20">
+        <div className="grid gap-6 sm:grid-cols-3 max-w-5xl mx-auto">
           {/* 资料库 */}
           <Link
             href="/species"
-            className="group card-hover rounded-2xl border bg-card p-6 sm:p-7 relative overflow-hidden"
+            className="group relative rounded-3xl border border-white/5 bg-card/20 backdrop-blur-xl p-8 sm:p-10 overflow-hidden transition-all duration-500 hover:bg-card/40 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)]"
           >
-            {/* 左侧彩色条 */}
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-accent-warm rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            <div className="w-12 h-12 rounded-xl bg-primary/8 text-primary flex items-center justify-center mb-4 group-hover:bg-primary/12 transition-colors duration-300">
-              <IconBook className="w-6 h-6" />
+            {/* 微光特效 */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            
+            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-primary flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform duration-500">
+              <IconBook className="w-7 h-7" />
             </div>
-            <h2 className="text-lg font-bold tracking-tight">资料库</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+            <h2 className="text-2xl font-black tracking-tight text-foreground/90 group-hover:text-primary transition-colors">资料库</h2>
+            <p className="mt-3 text-sm text-muted-foreground/60 leading-relaxed font-light">
               浏览蚁亚科物种资料，了解饲养方法与生态习性
             </p>
-            <div className="mt-4 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
-              浏览物种 <IconArrowRight className="w-3 h-3" />
-            </div>
           </Link>
 
           {/* 生活史 */}
           <Link
             href="/lifecycle"
-            className="group card-hover rounded-2xl border bg-card p-6 sm:p-7 relative overflow-hidden"
+            className="group relative rounded-3xl border border-white/5 bg-card/20 backdrop-blur-xl p-8 sm:p-10 overflow-hidden transition-all duration-500 hover:bg-card/40 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)]"
           >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-nature-green to-emerald-400 rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            <div className="w-12 h-12 rounded-xl bg-nature-green/8 text-nature-green flex items-center justify-center mb-4 group-hover:bg-nature-green/12 transition-colors duration-300">
-              <IconCycle className="w-6 h-6" />
+             <div className="absolute inset-0 bg-gradient-to-br from-nature-green/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            
+            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-nature-green flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform duration-500">
+              <IconCycle className="w-7 h-7" />
             </div>
-            <h2 className="text-lg font-bold tracking-tight">生活史</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+            <h2 className="text-2xl font-black tracking-tight text-foreground/90 group-hover:text-nature-green transition-colors">生活史</h2>
+            <p className="mt-3 text-sm text-muted-foreground/60 leading-relaxed font-light">
               了解蚂蚁从婚飞到成熟的完整生命历程
             </p>
-            <div className="mt-4 text-xs font-medium text-nature-green opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
-              探索阶段 <IconArrowRight className="w-3 h-3" />
-            </div>
           </Link>
 
           {/* 我的蚁群 */}
           <Link
-            href="/colonies/new"
-            className="group card-hover rounded-2xl border bg-card p-6 sm:p-7 relative overflow-hidden"
+            href="/colonies"
+            className="group relative rounded-3xl border border-white/5 bg-card/20 backdrop-blur-xl p-8 sm:p-10 overflow-hidden transition-all duration-500 hover:bg-card/40 hover:-translate-y-2 hover:shadow-[0_15px_40px_-10px_rgba(0,0,0,0.5)]"
           >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-warm to-amber-400 rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-warm/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-            <div className="w-12 h-12 rounded-xl bg-accent-warm/8 text-accent-warm flex items-center justify-center mb-4 group-hover:bg-accent-warm/12 transition-colors duration-300">
-              <IconAnt className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-accent-warm flex items-center justify-center mb-6 shadow-inner group-hover:scale-110 transition-transform duration-500">
+              <IconAnt className="w-7 h-7" />
             </div>
-            <h2 className="text-lg font-bold tracking-tight">我的蚁群</h2>
-            <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+            <h2 className="text-2xl font-black tracking-tight text-foreground/90 group-hover:text-accent-warm transition-colors">我的蚁群</h2>
+            <p className="mt-3 text-sm text-muted-foreground/60 leading-relaxed font-light">
               创建蚁群档案，记录成长过程，AI 辅助分析
             </p>
-            <div className="mt-4 text-xs font-medium text-accent-warm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1">
-              开始记录 <IconArrowRight className="w-3 h-3" />
-            </div>
           </Link>
         </div>
       </section>
@@ -204,42 +215,54 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {recommendedSpecies.map((sp, i) => (
               <Link
                 key={sp.id}
                 href={`/species/${sp.id}`}
-                className="group card-hover rounded-2xl border bg-card p-5 sm:p-6 relative"
+                className="group block relative overflow-hidden rounded-3xl border border-white/5 bg-card/20 backdrop-blur-xl p-6 sm:p-7 shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-primary/20 hover:bg-card/40"
                 style={{ animationDelay: `${i * 80}ms` }}
               >
-                {/* 左上角彩色圆点 */}
-                <div className="absolute top-5 left-5 w-2.5 h-2.5 rounded-full bg-primary/60 group-hover:bg-primary transition-colors duration-300" />
+                {/* 卡片高光 sweep */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-[150%] skew-x-[-30deg] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out pointer-events-none" />
 
-                <div className="flex items-start justify-between">
-                  <div className="pl-4">
-                    <h3 className="font-bold group-hover:text-primary transition-colors duration-200">
-                      {sp.name_cn}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-0.5 italic font-light">
-                      {sp.name_lat}
-                    </p>
+                 {/* 右上角光晕 */}
+                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[50px] -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <h3 className="text-xl sm:text-2xl font-black text-foreground/90 group-hover:text-primary transition-colors duration-300 tracking-tight">
+                        {sp.name_cn}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground/60 mt-1 italic font-light tracking-wide">
+                        {sp.name_lat}
+                      </p>
+                    </div>
+                    {sp.beginner_friendly && (
+                      <span className="rounded-full bg-nature-green/10 text-nature-green ring-1 ring-nature-green/20 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-inner flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-nature-green animate-pulse" />
+                        推荐
+                      </span>
+                    )}
                   </div>
-                  {sp.beginner_friendly && (
-                    <span className="rounded-full bg-nature-green/10 text-nature-green dark:bg-nature-green/20 dark:text-nature-green/80 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap border border-nature-green/15">
-                      新手推荐
-                    </span>
+                  
+                  {sp.summary ? (
+                    <p className="text-sm line-clamp-3 text-muted-foreground/80 leading-relaxed font-light mt-2 mb-6 flex-grow">
+                      {sp.summary}
+                    </p>
+                  ) : (
+                    <div className="flex-grow mb-6 pt-2">
+                       <div className="w-12 h-0.5 bg-muted-foreground/20 rounded-full" />
+                    </div>
                   )}
-                </div>
-                {sp.summary && (
-                  <p className="mt-3 text-sm line-clamp-2 text-muted-foreground leading-relaxed pl-4">
-                    {sp.summary}
-                  </p>
-                )}
 
-                {/* Hover 底部提示 */}
-                <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-300 pl-4">
-                  <span className="text-xs text-muted-foreground">{sp.genus_cn}</span>
-                  <IconArrowRight className="w-3.5 h-3.5 text-primary" />
+                  <div className="pt-4 border-t border-white/5 flex gap-2 flex-wrap text-[11px] font-medium text-muted-foreground/60 uppercase tracking-wider mt-auto">
+                    <span className="bg-background/40 backdrop-blur-md px-2 py-1 rounded-md border border-white/5 group-hover:text-primary transition-colors flex items-center gap-1">
+                      {sp.genus_cn}
+                      <IconArrowRight className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-5px] group-hover:translate-x-0" />
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -247,12 +270,12 @@ export default async function HomePage() {
         )}
 
         {/* 移动端查看全部按钮 */}
-        <div className="mt-6 text-center sm:hidden">
+        <div className="mt-8 text-center sm:hidden">
           <Link
-            href="/species"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary"
+            href="/species?tag=beginner"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md px-6 py-2.5 text-sm font-bold text-foreground/80"
           >
-            查看全部物种 <IconArrowRight className="w-3.5 h-3.5" />
+            查看全部新手推荐 <IconArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </section>
