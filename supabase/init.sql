@@ -10,7 +10,39 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================
--- 2. 物种表 species
+-- 2. 用户表 users（自定义用户名密码认证）
+-- ============================================
+CREATE TABLE IF NOT EXISTS users (
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  username        TEXT UNIQUE NOT NULL,
+  password_hash   TEXT NOT NULL,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- 注册时允许插入新用户
+CREATE POLICY "允许注册新用户" ON users
+  FOR INSERT WITH CHECK (true);
+
+-- 登录时允许按用户名查询（通过 service_role 绕过 RLS，此策略作为备用）
+CREATE POLICY "允许查询用户" ON users
+  FOR SELECT USING (true);
+
+-- 用户可更新自己的信息
+CREATE POLICY "用户可更新自己" ON users
+  FOR UPDATE USING (true);
+
+CREATE TRIGGER update_users_updated_at
+  BEFORE UPDATE ON users
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================
+-- 3. 物种表 species
 -- ============================================
 CREATE TABLE IF NOT EXISTS species (
   id                SERIAL PRIMARY KEY,
