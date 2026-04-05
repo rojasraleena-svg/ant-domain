@@ -59,8 +59,28 @@ export const NEST_TYPE_LABELS: Record<string, string> = {
   branch_nest: "枝条巢",
   arboreal_formicarium: "树栖蚁巢",
 
-  // 亚克力变体
+  // 亚克力/试管变体
   small_acrylic: "小型亚克力",
+  large_gypsum: "大型石膏板",
+  small_test_tube: "小型试管",
+  tiny_test_tube: "超小型试管",
+  tiny_tube: "微型试管",
+  tiny_container: "微型容器",
+  tube_with_wood: "含木试管",
+
+  // 自然/土壤环境
+  natural: "自然巢",
+  shallow_soil: "浅层土巢",
+  leaf_litter: "枯叶层",
+  wood: "木质巢",
+  arboreal: "树栖",
+
+  // 特殊生境
+  humid_microhabitat: "潮湿微生境",
+  prey_rich: "猎物丰富环境",
+  micro_cavity: "微型空腔",
+  secure_gypsum: "加固石膏板",
+  any: "均可",
 };
 
 // ========== 便捷函数 ==========
