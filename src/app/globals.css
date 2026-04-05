@@ -35,6 +35,10 @@
   --animate-slide-in-right: slideInRight 0.5s ease-out both;
   --animate-scale-in: scaleIn 0.4s ease-out both;
   --animate-float: float 6s ease-in-out infinite;
+  --animate-stod-fade-up: stod-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-stod-draw-line: stod-draw-line 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-stod-fade-in: stod-fade-in 0.4s ease-out both;
+  --animate-stod-slide-in: stod-slide-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* ============================================
@@ -160,6 +164,40 @@ body {
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 0 0 oklch(0.65 0.15 60 / 0.15); }
   50% { box-shadow: 0 0 20px 4px oklch(0.65 0.15 60 / 0.08); }
+}
+
+/* ============================================
+   STOD 级标题动画 — 蚁域 双层渲染入场序列
+   ============================================ */
+@keyframes stod-fade-up {
+  from { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+  to   { opacity: 1; transform: translateY(0);   filter: blur(0); }
+}
+
+@keyframes stod-draw-line {
+  from { scaleX: 0; opacity: 0; }
+  to   { scaleX: 1; opacity: 0.6; }
+}
+
+@keyframes stod-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes stod-slide-in {
+  from { opacity: 0; transform: translateX(-16px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateX(0);    filter: blur(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-stod-fade-up,
+  .animate-stod-draw-line,
+  .animate-stod-fade-in,
+  .animate-stod-slide-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* ============================================

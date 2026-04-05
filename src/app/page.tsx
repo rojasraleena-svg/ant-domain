@@ -64,89 +64,114 @@ export default async function HomePage() {
       {/* ====== Hero 区域 ====== */}
       {/* 调整 pt 和 pb 以适合一屏的视差，并设置最小高度让布局撑开 */}
       <section className="relative overflow-hidden pt-12 pb-12 sm:pt-20 sm:pb-16 lg:pt-28 lg:pb-24 border-b border-white/[0.02] min-h-[calc(100vh-80px)] flex items-center">
-        {/* 背景深邃弥散光 (替代了原先明显的色块) */}
+        {/* 背景深邃弥散光 (恢复项目主色调) */}
         <div className="absolute top-1/4 right-0 w-[40vw] h-[40vw] rounded-full bg-primary/10 blur-[150px] pointer-events-none -z-10 mix-blend-screen" />
         <div className="absolute bottom-0 left-1/4 w-[30vw] h-[30vw] rounded-full bg-accent-warm/5 blur-[120px] pointer-events-none -z-10 mix-blend-screen" />
 
         <div className="relative container mx-auto px-4 lg:px-8 z-10 flex flex-col-reverse lg:grid lg:grid-cols-12 gap-12 lg:gap-8 items-center w-full">
 
-          {/* 左侧：排版与动作 (占 7 列) */}
-          <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
-            {/* 极致光效的极简标签 */}
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.01] backdrop-blur-md px-4 py-1.5 mb-6 shadow-2xl">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_currentColor] animate-pulse" />
-              <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.25em] text-foreground/60">
-                AI Powered Observatory
-              </span>
+          {/* 左侧：排版与动作 (占 7 列) 加大右侧内边距，远离图片 */}
+          <div className="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left z-10 w-full xl:pr-12">
+
+            {/* STOD 极简高冷排版：巨大的负间距、极其克制的装饰、绝对的对齐 */}
+            <div className="flex flex-col items-start w-full select-none">
+              
+              {/* ====== 主标题：蚁域 ====== */}
+              {/* 极致压缩的字距 (tracking-tighter)，回归纯粹的几何张力，完全水平排列 */}
+              <h1 className="text-[6rem] sm:text-[8rem] lg:text-[10rem] xl:text-[13rem] font-serif leading-[0.8] tracking-tighter flex flex-row items-baseline group relative pt-8">
+                <span className="text-foreground transition-transform duration-700 ease-out group-hover:-translate-y-2">
+                  蚁
+                </span>
+                {/* 镂空描边，并排对齐 */}
+                <span className="text-transparent ml-2 transition-transform duration-700 ease-out group-hover:translate-x-3"
+                      style={{ WebkitTextStroke: '1px rgba(255,255,255,0.75)' }}>
+                  域<span className="text-white/20 font-sans text-5xl sm:text-7xl xl:text-8xl align-baseline ml-1">.</span>
+                </span>
+              </h1>
+
             </div>
 
-            {/* Awwwards 级别的高反差 Typography - 稍微调小一点字体高度使得比例更匀称 */}
-            <h1 className="text-[3.5rem] sm:text-[5rem] lg:text-[6.5rem] font-light tracking-tighter leading-[0.9] text-foreground">
-               <span className="block text-foreground/70 mb-1">探索</span>
-               <span className="font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-primary/90 to-primary/40 drop-shadow-2xl">
-                 蚁域
-               </span>
-               <span className="block mt-1 font-normal text-foreground/90">微观帝国.</span>
-            </h1>
-
-            {/* 优雅的副标题 */}
-            <p className="mt-6 text-sm sm:text-base lg:text-lg text-muted-foreground/50 font-light tracking-wide max-w-lg leading-relaxed">
-              在沉浸式数字显微镜下，阅览物种资料、研习饲养阶段，并记录蜂群生长的每一个微小奇迹。
-            </p>
-
-            {/* 现代化精简的按钮组合 */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <Link
-                href="/species"
-                className="group relative flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-3.5 rounded-full bg-foreground text-background font-bold text-sm tracking-wide transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_30px_rgba(255,255,255,0.1)]"
-              >
-                开始探索
-                <IconArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="/colonies/new"
-                className="group flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-3.5 rounded-full border border-white/10 bg-transparent text-foreground/70 font-medium text-sm tracking-wide transition-colors hover:bg-white/5 hover:text-foreground"
-              >
-                创建档案
-              </Link>
-            </div>
-
-            {/* 像尺子一样精致的弱光数据统计条 - 减小 margin-top 以贴合整体框架 */}
-            <div className="mt-12 flex items-center gap-10 sm:gap-14 w-full justify-center lg:justify-start">
-              {[
-                { num: '200+', label: '物种记录' },
-                { num: '18', label: '亚科细分' },
-                { num: 'AI', label: '智能分析' },
-              ].map((s, i) => (
-                <div key={s.label} className="relative text-center lg:text-left group">
-                  {i !== 0 && (
-                    <div className="absolute -left-5 sm:-left-7 top-1/2 -translate-y-1/2 w-px h-8 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-                  )}
-                  <p className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground/90 transition-colors group-hover:text-primary">{s.num}</p>
-                  <p className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-semibold uppercase tracking-[0.2em] mt-1.5">{s.label}</p>
+            {/* ====== 新版信息架构 (STOD 结构：水平穿插数据带) ====== */}
+            <div className="mt-16 lg:mt-24 w-full flex flex-col gap-14 max-w-3xl">
+                
+              {/* 描述组：极简装饰，严格左对齐 */}
+              <div className="flex flex-col gap-8">
+                <div className="flex items-center gap-6">
+                  <div className="w-12 h-[2px] bg-primary/80" />
+                  <span className="text-[10px] font-bold tracking-[0.5em] text-foreground/70 uppercase whitespace-nowrap">
+                    微观帝国 / Empire
+                  </span>
                 </div>
-              ))}
+                {/* 取消 pl，换用更大的行高和字距，极致留白 */}
+                <p className="text-sm text-muted-foreground/50 font-light tracking-[0.25em] leading-[2.2] break-keep whitespace-nowrap sm:whitespace-normal">
+                  在沉浸式数字显微镜下，览阅详尽的物种资料
+                  <br className="hidden sm:block" />
+                  研习饲养阶段，记录蚂蚁生态的每一处奇迹。
+                </p>
+              </div>
+
+              {/* 数据流：引入隐形列网格 (Grid)，彻底根治宽窄字符导致的视觉位移错乱 */}
+              <div className="grid grid-cols-3 items-start gap-4 sm:gap-8 w-full max-w-lg pt-2 md:pt-4">
+                {[
+                  { num: '200+', label: 'Species' },
+                  { num: '18', label: 'Families' },
+                  { num: 'AI', label: 'Analysis' },
+                ].map((s) => (
+                  <div key={s.label} className="flex flex-col gap-1.5 group cursor-default">
+                    {/* 压缩行高 (leading-none) 让数字和英文 Label 的物理缝隙能精准控制，形成格式塔整体 */}
+                    <p className="text-4xl sm:text-[40px] leading-none font-serif font-light tracking-wide text-white/90 transition-all duration-700 group-hover:text-primary group-hover:-translate-y-0.5">
+                      {s.num}
+                    </p>
+                    {/* 使用负外边距 (-mr-[0.4em]) 抵消极宽字距造成的右侧留白错觉，保证整体完美左对齐 */}
+                    <p className="text-[10px] text-muted-foreground/40 font-mono uppercase tracking-[0.4em] -mr-[0.4em]">
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* 按钮组合：坚实的矩阵感底盘 */}
+              {/* 增加整体间距，拉开与数据的层次节奏 */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 pt-4">
+                <Link
+                  href="/species"
+                  className="group relative flex items-center justify-center w-full sm:w-[160px] h-[52px] bg-primary text-black font-bold text-[13px] tracking-[0.3em] whitespace-nowrap uppercase transition-all duration-700 hover:bg-white hover:text-black active:scale-[0.98]"
+                >
+                  {/* 对带有大字距的中文字符，必须利用 pl-[0.3em] 进行光学绝对居中补偿 */}
+                  <span className="pl-[0.3em]">探索</span>
+                  {/* 悬浮修饰线改为绝对定位，不再参与 flex 挤压，保证文字永绝对居中 */}
+                  <div className="absolute right-6 w-4 h-px bg-black opacity-40 group-hover:w-6 group-hover:opacity-100 transition-all duration-700"></div>
+                </Link>
+                <Link
+                  href="/colonies/new"
+                  className="group flex items-center justify-center w-full sm:w-[160px] h-[52px] border border-white/20 bg-transparent text-white/60 font-medium text-[13px] tracking-[0.3em] whitespace-nowrap uppercase transition-all duration-700 hover:text-white hover:border-white/80 active:scale-[0.98]"
+                >
+                  {/* 同理，光学绝对居中补偿 */}
+                  <span className="pl-[0.3em]">创建</span>
+                </Link>
+              </div>
             </div>
           </div>
 
           {/* 右侧：深邃无界的沉浸式配图 (占 5 列) */}
-          <div className="lg:col-span-5 relative w-full lg:h-[600px] flex items-center justify-center mt-8 lg:mt-0">
-            {/* 修复遮罩：扩大可视范围，使其更接大图的霸气感 */}
-            <div 
-              className="relative w-full aspect-square lg:aspect-auto lg:h-full opacity-85 mix-blend-lighten" 
-              style={{ 
-                maskImage: 'radial-gradient(circle at center, black 40%, transparent 80%)', 
-                WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 80%)' 
+          <div className="lg:col-span-5 relative w-full lg:h-[600px] max-h-[45vh] lg:max-h-none flex items-center justify-center mt-6 lg:mt-0">
+            {/* 图片容器：径向遮罩 + 细边框界定 */}
+            <div
+              className="relative w-full aspect-square lg:aspect-auto lg:h-full opacity-90 mix-blend-lighten overflow-hidden rounded-2xl lg:rounded-3xl ring-1 ring-white/[0.08] group"
+              style={{
+                maskImage: 'radial-gradient(circle at center, black 50%, transparent 85%)',
+                WebkitMaskImage: 'radial-gradient(circle at center, black 50%, transparent 85%)'
               }}
             >
               <img
                 src="/images/hero-ant-macro.jpg"
                 alt="Microscopic Ant"
-                className="w-full h-full object-cover object-center grayscale-[0.1] contrast-[1.1] transition-transform duration-[30s] hover:scale-110 ease-out"
+                // 恢复色彩：亮度调暗，悬停放大且恢复全量颜色
+                className="w-full h-full object-cover object-center brightness-90 transition-all duration-[4s] ease-out group-hover:scale-[1.08] group-hover:brightness-110"
               />
             </div>
             
-            {/* 微弱的光晕在图片背后托底 */}
+            {/* 微弱的光晕在图片背后托底，恢复彩色投影 */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-primary/10 blur-[100px] rounded-full pointer-events-none -z-10" />
             
             {/* 图片侧边的精细装饰性刻度 (增强科幻/显微镜感) */}

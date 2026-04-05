@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession, setAuthCookie, signToken, verifyPassword } from "@/lib/auth";
 import { ensureAuthMirror } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
+import { BrandLogo } from "@/components/layout/header";
 
 const LOGIN_MESSAGES: Record<string, string> = {
   empty_fields: "请填写用户名和密码",
@@ -17,24 +18,9 @@ export const metadata = {
 
 function AntDecorative() {
   return (
-    <svg className="w-10 h-10 text-primary/25" viewBox="0 0 32 32" fill="none">
-      <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.6" />
-      <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.6" />
-      <path
-        d="M13 7.5 Q10 2.5 7.5 4.5 M19 7.5 Q22 2.5 24.5 4.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        opacity="0.4"
-      />
-      <path
-        d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5 M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        opacity="0.4"
-      />
-    </svg>
+    <div className="flex flex-col items-center justify-center gap-3">
+      <BrandLogo className="w-10 h-10 border-white/20" glow={true} />
+    </div>
   );
 }
 

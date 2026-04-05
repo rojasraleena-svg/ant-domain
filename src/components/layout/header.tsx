@@ -12,23 +12,14 @@ const navItems = [
   { href: "/colonies", label: "我的蚁群" },
 ];
 
-/* 蚂蚁 Logo SVG — 填充版 */
-function AntLogo({ className = "w-6 h-6" }: { className?: string }) {
+/* 几何版极简徽标 (用于各处复用) */
+export function BrandLogo({ className = "w-6 h-6", glow = true }: { className?: string, glow?: boolean }) {
   return (
-    <svg className={className} viewBox="0 0 32 32" fill="none">
-      {/* 身体填充 */}
-      <ellipse cx="16" cy="22" rx="8" ry="4.5" fill="currentColor" opacity="0.9" />
-      <circle cx="16" cy="12" r="5.5" fill="currentColor" opacity="0.9" />
-      {/* 头部高光 */}
-      <circle cx="14.5" cy="10.5" r="1.5" fill="white" opacity="0.25" />
-      {/* 触角 */}
-      <path d="M13 7.5 Q10 2.5 7.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-      <path d="M19 7.5 Q22 2.5 24.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" fill="none" />
-      {/* 腿 — 左侧 */}
-      <path d="M9 20 L4.5 25.5 M9.5 21.5 L4 24 M10 23 L5.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-      {/* 腿 — 右侧 */}
-      <path d="M23 20 L27.5 25.5 M22.5 21.5 L28 24 M22 23 L26.5 27.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-    </svg>
+    <div className={`relative flex items-center justify-center rounded-full border border-white/20 transition-all duration-500 scale-100 ${className}`}>
+      {/* 核心“宇宙/单点”隐喻 */}
+      <div className={`w-1.5 h-1.5 rounded-full bg-primary ${glow ? 'shadow-[0_0_10px_#ff6432]' : ''} absolute top-1.5 right-1.5`} />
+      <div className="w-0.5 h-0.5 rounded-full bg-white/50 absolute bottom-2 left-2" />
+    </div>
   );
 }
 
@@ -58,29 +49,36 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
-      <div className="container mx-auto flex h-15 items-center px-4">
-        {/* Logo */}
-        <Link href="/" className="mr-8 flex items-center gap-2 group">
-          <AntLogo className="w-7 h-7 text-primary transition-transform duration-300 group-hover:scale-110" />
-          <span className="text-lg font-bold tracking-tight">
-            蚁<span className="text-primary">域</span>
-          </span>
+    <header className="sticky top-0 z-50 w-full border-b border-white/[0.04] bg-background/40 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/20 transition-all duration-300">
+      <div className="container mx-auto flex h-16 items-center px-4 lg:px-8">
+        {/* Logo - 重构为极简几何风格 */}
+        <Link href="/" className="mr-12 flex items-center gap-3 group">
+          <div className="group-hover:border-white/60 group-hover:rotate-90 transition-all duration-500">
+             <BrandLogo className="w-6 h-6 border-white/20" glow={true} />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-black tracking-[0.3em] uppercase text-foreground/90 leading-none">
+              ANT<span className="font-light text-foreground/50">DOMAIN</span>
+            </span>
+          </div>
         </Link>
 
         {/* 桌面导航 */}
-        <nav className="hidden md:flex items-center space-x-1">
+        <nav className="hidden md:flex items-center space-x-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`nav-link relative px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+              className={`nav-link relative px-4 py-2 text-[11px] font-medium tracking-[0.15em] transition-all duration-300 ${
                 isActive(item.href)
-                  ? "text-foreground active"
+                  ? "text-foreground"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {item.label}
+              {isActive(item.href) && (
+                <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary shadow-[0_0_5px_currentColor]" />
+              )}
             </Link>
           ))}
         </nav>

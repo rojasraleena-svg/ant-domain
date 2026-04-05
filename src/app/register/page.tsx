@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession, hashPassword } from "@/lib/auth";
 import { ensureAuthMirror } from "@/lib/auth-admin";
 import { db } from "@/lib/db";
+import { BrandLogo } from "@/components/layout/header";
 
 const REG_MESSAGES: Record<string, string> = {
   short_username: "用户名至少需要 2 个字符",
@@ -30,10 +31,19 @@ export default async function RegisterPage({
   const isSuccess = msg === "success";
 
   return (
-    <div className="container mx-auto flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">注册蚁域</h1>
+    <div className="container mx-auto flex min-h-[calc(100vh-3.5rem)] items-center justify-center px-4 relative">
+      <div className="absolute top-1/4 -left-1/4 w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] mix-blend-screen pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-1/4 w-[50%] h-[50%] bg-accent-warm/5 rounded-full blur-[100px] mix-blend-screen pointer-events-none" />
+      
+      <div className="w-full max-w-sm relative z-10">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <Link
+            href="/"
+            className="group flex flex-col items-center justify-center gap-3 transition-transform hover:scale-105"
+          >
+            <BrandLogo className="w-10 h-10 border-white/20" glow={true} />
+          </Link>
+          <h1 className="text-2xl font-bold mt-6">成为微观记录者</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             创建账号，开始记录你的蚁群成长
           </p>
