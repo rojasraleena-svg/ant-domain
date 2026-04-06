@@ -63,15 +63,28 @@ async function getDashboardData() {
     }
   }
 
-  // 最近生成的图片
+  // 最近生成的图片（不含 users 关联查询）
   const { data: recentImages } = await db
     .from("generated_images")
     .select(
-      "id, url, model, created_at, species_id, species(name_cn, name_lat), created_by, users(username)"
+      "id, url, model, created_at, species_id, species(name_cn, name_lat), created_by"
     )
     .eq("status", 1)
     .order("created_at", { ascending: false })
     .limit(6);
+
+  // 查询创建者用户名
+  const recentCreatorIds = [...new Set((recentImages || []).map((img) => img.created_by).filter(Boolean))];
+  const recentUsernameMap: Record<string, string> = {};
+  if (recentCreatorIds.length > 0) {
+    const { data: recentCreators } = await db
+      .from("users")
+      .select("id, username")
+      .in("id", recentCreatorIds);
+    for (const u of recentCreators || []) {
+      recentUsernameMap[u.id] = u.username;
+    }
+  }
 
   return {
     speciesCount: speciesRes.count || 0,
@@ -83,6 +96,7 @@ async function getDashboardData() {
       imageCount: imageCounts[u.id] || 0,
     })),
     recentImages: recentImages || [],
+    recentUsernameMap,
   };
 }
 
@@ -98,6 +112,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default async function AdminDashboardPage() {
   const data = await getDashboardData();
+  const { recentUsernameMap } = data;
 
   /** 格式化为上海时间的相对时间 */
   const formatTime = (dateStr: string) => {
@@ -302,7 +317,9 @@ export default async function AdminDashboardPage() {
                 name_cn: string;
                 name_lat: string;
               } | null;
-              const creator = (Array.isArray(img.users) ? img.users[0] : img.users) as { username: string } | null;
+              const creator = img.created_by
+                ? { username: recentUsernameMap[img.created_by] || null }
+                : null;
 
               // 图片创建时间也用上海时间
               const imgDate = toShanghaiTime(img.created_at);

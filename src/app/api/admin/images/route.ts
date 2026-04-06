@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   let query = db
     .from("generated_images")
     .select(
-      "*, species(name_cn, name_lat), users(username)",
+      "*, species(name_cn, name_lat)",
       { count: "exact" }
     )
     .eq("status", 1)
@@ -53,8 +53,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "查询失败" }, { status: 500 });
   }
 
+  // 单独查询创建者用户名（created_by 无外键关系）
+  const creatorIds = [...new Set((data || []).map((img) => img.created_by).filter(Boolean))];
+  const usernameMap: Record<string, string> = {};
+  if (creatorIds.length > 0) {
+    const { data: creators } = await db
+      .from("users")
+      .select("id, username")
+      .in("id", creatorIds);
+    for (const u of creators || []) {
+      usernameMap[u.id] = u.username;
+    }
+  }
+
+  // 附加用户名到图片数据
+  const images = (data || []).map((img) => ({
+    ...img,
+    creatorUsername: img.created_by ? (usernameMap[img.created_by] || null) : null,
+  }));
+
   return NextResponse.json({
-    images: data || [],
+    images,
     total: count || 0,
     page,
     pageSize,

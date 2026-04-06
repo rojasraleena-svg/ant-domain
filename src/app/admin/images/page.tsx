@@ -27,6 +27,7 @@ interface AdminImage {
   created_at: string;
   species?: { name_cn: string; name_lat: string };
   users?: { username: string };
+  creatorUsername?: string | null;
 }
 
 const STYLE_MAP: Record<string, string> = {
