@@ -431,10 +431,25 @@ export default function AdminImagesPage() {
                   </p>
                 </div>
 
+                {/* 创建者 */}
+                {selectedImage.creatorUsername && (
+                  <p className="text-[11px] text-muted-foreground">
+                    由{" "}
+                    <span className="font-medium text-foreground/80">
+                      {selectedImage.creatorUsername}
+                    </span>{" "}生成
+                  </p>
+                )}
+
                 {/* 时间 */}
                 <p className="text-[11px] text-muted-foreground">
                   生成于{" "}
-                  {new Date(selectedImage.created_at).toLocaleString("zh-CN")}
+                  {(() => {
+                    const d = new Date(selectedImage.created_at);
+                    const offset = 8 * 60 * 60 * 1000;
+                    const shanghai = new Date(d.getTime() + offset + d.getTimezoneOffset() * 60 * 1000);
+                    return shanghai.toLocaleString("zh-CN", { timeZoneName: "short" });
+                  })()}
                 </p>
 
                 {/* 操作按钮 */}
