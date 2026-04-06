@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-api";
+import { db } from "@/lib/db";
 import {
   generateAntImage,
   generateImageFromPrompt,
@@ -13,6 +14,8 @@ import {
  * 支持两种模式：
  * 1. 蚁种插图模式（传入 species 信息，自动构建专业 prompt）
  * 2. 自定义 Prompt 模式（直接传入 prompt 文本）
+ *
+ * 两种模式都会将生成的图片记录写入 generated_images 表
  */
 export async function POST(request: NextRequest) {
   try {
@@ -48,12 +51,30 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const result = await generateAntImage(antOpts, genOpts);
+      // 查询 species_id
+      const { data: species, error: speciesErr } = await db
+        .from("species")
+        .select("id")
+        .ilike("name_lat", antOpts.nameLat)
+        .limit(1)
+        .single();
+
+      if (speciesErr || !species) {
+        return NextResponse.json(
+          { error: `未找到物种 "${antOpts.nameLat}" 的记录。` },
+          { status: 404 }
+        );
+      }
+
+      const result = await generateAntImage(
+        { ...antOpts, speciesId: species.id as number },
+        { ...genOpts, createdBy: user.id }
+      );
       return NextResponse.json(result);
     }
 
     // ---- 自定义 Prompt 模式 ----
-    const { prompt, ...genOpts } = body;
+    const { prompt, speciesId, ...genOpts } = body;
 
     if (!prompt || typeof prompt !== "string" || prompt.trim().length === 0) {
       return NextResponse.json(
@@ -62,7 +83,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await generateImageFromPrompt(prompt, genOpts);
+    const result = await generateImageFromPrompt(prompt, {
+      ...genOpts,
+      speciesId: speciesId || undefined,
+      createdBy: user.id,
+    });
     return NextResponse.json(result);
   } catch (error) {
     console.error("[generate-image] Error:", error);

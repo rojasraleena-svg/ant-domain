@@ -95,7 +95,7 @@ export default async function SpeciesDetailPage({
 
       {/* AI 插图生成 */}
       <section className="mb-8">
-        <ImageGenerator nameCn={sp.name_cn} nameLat={sp.name_lat} />
+        <ImageGenerator nameCn={sp.name_cn} nameLat={sp.name_lat} speciesId={sp.id} />
       </section>
 
       <section className="mb-8 rounded-lg border bg-card p-6">

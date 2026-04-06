@@ -21,12 +21,14 @@ export interface ImageGenOptions {
 export interface ImageGenResult {
   /** 任务 ID */
   taskId: string;
-  /** 永久图片 URL 列表（已存入 Supabase） */
+  /** 永久图片 URL 列表（已存入 Supabase Storage） */
   imageUrls: string[];
   /** 成功数量 */
   successCount: number;
   /** 失败数量 */
   failedCount: number;
+  /** 数据库记录 ID 列表 */
+  recordIds?: number[];
 }
 
 export interface AntPromptOptions {
@@ -183,7 +185,52 @@ async function persistImagesToStorage(
   return permanentUrls;
 }
 
-// ---- Prompt 构建：蚂蚁专用模板 ----
+// ---- 数据库：写入 generated_images 记录 ----
+
+interface SaveRecordOptions {
+  speciesId: number;
+  urls: string[];
+  prompt: string;
+  model?: string;
+  viewType?: string;
+  style?: string;
+  caste?: string;
+  aspectRatio?: string;
+  taskId?: string;
+  createdBy?: string; // UUID
+}
+
+/**
+ * 将生成的图片记录写入 generated_images 表
+ */
+async function saveImageRecords(opts: SaveRecordOptions): Promise<number[]> {
+  if (opts.urls.length === 0) return [];
+
+  const records = opts.urls.map((url) => ({
+    species_id: opts.speciesId,
+    url,
+    prompt: opts.prompt,
+    model: opts.model || "image-01",
+    view_type: opts.viewType || null,
+    style: opts.style || null,
+    caste: opts.caste || null,
+    aspect_ratio: opts.aspectRatio || "1:1",
+    task_id: opts.taskId || null,
+    created_by: opts.createdBy || null,
+  }));
+
+  const { data, error } = await db
+    .from("generated_images")
+    .insert(records)
+    .select("id");
+
+  if (error) {
+    console.error("[image-gen] 写入图片记录失败:", error.message);
+    return [];
+  }
+
+  return (data || []).map((r) => r.id as number);
+}
 
 /**
  * 构建蚂蚁物种的专业文生图 Prompt
@@ -211,12 +258,13 @@ export function buildAntPrompt(opts: AntPromptOptions): string {
  * 1. 构建专业 Prompt
  * 2. 调用 MiniMax API 生成图片
  * 3. 下载并持久化到 Supabase Storage
+ * 4. 写入 generated_images 数据库记录
  *
- * @returns 包含永久 URL 的结果
+ * @returns 包含永久 URL 和记录 ID 的结果
  */
 export async function generateAntImage(
-  promptOpts: AntPromptOptions,
-  genOptions: ImageGenOptions = {}
+  promptOpts: AntPromptOptions & { speciesId: number },
+  genOptions: ImageGenOptions & { createdBy?: string } = {}
 ): Promise<ImageGenResult> {
   // Step 1: 构建 Prompt
   const prompt = buildAntPrompt(promptOpts);
@@ -237,11 +285,26 @@ export async function generateAntImage(
   const storagePrefix = `ant-${promptOpts.nameLat.toLowerCase().replace(/\s+/g, "-")}`;
   const permanentUrls = await persistImagesToStorage(apiResult.imageUrls, storagePrefix);
 
+  // Step 4: 写入数据库记录
+  const recordIds = await saveImageRecords({
+    speciesId: promptOpts.speciesId,
+    urls: permanentUrls,
+    prompt,
+    model: "image-01",
+    viewType: promptOpts.view,
+    style: promptOpts.style,
+    caste: promptOpts.caste,
+    aspectRatio: genOptions.aspectRatio || "1:1",
+    taskId: apiResult.id,
+    createdBy: genOptions.createdBy,
+  });
+
   return {
     taskId: apiResult.id,
     imageUrls: permanentUrls,
     successCount: permanentUrls.length,
     failedCount: apiResult.imageUrls.length - permanentUrls.length,
+    recordIds,
   };
 }
 
@@ -250,7 +313,7 @@ export async function generateAntImage(
  */
 export async function generateImageFromPrompt(
   prompt: string,
-  options: ImageGenOptions = {}
+  options: ImageGenOptions & { speciesId?: number; createdBy?: string } = {}
 ): Promise<ImageGenResult> {
   if (!prompt || prompt.trim().length === 0) {
     throw new Error("Prompt 不能为空");
@@ -259,7 +322,8 @@ export async function generateImageFromPrompt(
     throw new Error("Prompt 不能超过 1500 字符");
   }
 
-  const apiResult = await callMiniMaxAPI(prompt.trim(), options);
+  const trimmedPrompt = prompt.trim();
+  const apiResult = await callMiniMaxAPI(trimmedPrompt, options);
 
   if (apiResult.imageUrls.length === 0) {
     return {
@@ -275,10 +339,25 @@ export async function generateImageFromPrompt(
     "custom"
   );
 
+  // 写入数据库记录（如果提供了 speciesId）
+  let recordIds: number[] | undefined;
+  if (options.speciesId) {
+    recordIds = await saveImageRecords({
+      speciesId: options.speciesId,
+      urls: permanentUrls,
+      prompt: trimmedPrompt,
+      model: "image-01",
+      aspectRatio: options.aspectRatio || "1:1",
+      taskId: apiResult.id,
+      createdBy: options.createdBy,
+    });
+  }
+
   return {
     taskId: apiResult.id,
     imageUrls: permanentUrls,
     successCount: permanentUrls.length,
     failedCount: apiResult.imageUrls.length - permanentUrls.length,
+    recordIds,
   };
 }
