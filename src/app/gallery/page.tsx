@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Image,
@@ -62,7 +62,7 @@ const STYLE_OPTIONS = [
 
 const PAGE_SIZE = 30;
 
-export default function GalleryPage() {
+function GalleryContent() {
   const searchParams = useSearchParams();
   const urlSpeciesId = searchParams.get("speciesId");
 
@@ -499,5 +499,19 @@ export default function GalleryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      }
+    >
+      <GalleryContent />
+    </Suspense>
   );
 }
