@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { summarizeLog } from "@/lib/ai";
+import { summarizeLog, fetchImageAsBase64 } from "@/lib/ai";
+import type { LogImageInput } from "@/lib/ai";
 import { getSession } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { SubmitButton } from "@/app/colonies/components/submit-button";
+import { ImageUploader } from "@/components/image-uploader";
 
 export const metadata = {
   title: "写日志",
@@ -91,6 +93,15 @@ export default async function NewLogPage({
           const humidity = formData.get("humidity") ? parseFloat(formData.get("humidity") as string) : null;
           const abnormalType = formData.get("abnormalType") as string;
 
+          // 提取上传的图片信息
+          const logImagesStr = formData.getAll("logImages") as string[];
+          const logImages = logImagesStr
+            .filter((s) => s)
+            .map((s) => {
+              try { return JSON.parse(s); } catch { return null; }
+            })
+            .filter(Boolean);
+
           const { error: logError } = await db.from("colony_logs").insert({
             colony_id: parseInt(id, 10),
             user_id: currentUser.id,
@@ -106,6 +117,7 @@ export default async function NewLogPage({
             temperature,
             humidity,
             abnormal_type: abnormalType || null,
+            images: logImages.length > 0 ? logImages : null,
           });
 
           if (logError) {
@@ -115,11 +127,23 @@ export default async function NewLogPage({
           const { data: newLog } = await db.from("colony_logs").select("id").eq("colony_id", parseInt(id, 10)).eq("title", title).order("created_at", { ascending: false }).limit(1).single();
 
           try {
+            // 准备 AI 图片数据（服务端 fetch URL → base64）
+            const aiImages = [];
+            for (const img of logImages) {
+              if (img?.url) {
+                const b64 = await fetchImageAsBase64(img.url);
+                if (b64) {
+                  aiImages.push({ url: img.url, base64Data: b64.base64Data, mediaType: b64.mediaType as LogImageInput["mediaType"] });
+                }
+              }
+            }
+
             const aiResult = await summarizeLog({
               colonyName: colony.name,
               speciesName: colony.species?.name_cn || "",
               currentStage: colony.current_stage || undefined,
               title, content: content || "", workerCount: workerCount || undefined, eggStatus: eggStatus || undefined, larvaStatus: larvaStatus || undefined, pupaStatus: pupaStatus || undefined, feedingRecord: feedingRecord || undefined, temperature: temperature ?? undefined, humidity: humidity ?? undefined, abnormalType: abnormalType || undefined,
+              images: aiImages.length > 0 ? aiImages : undefined,
             });
 
             if (newLog) {
@@ -156,6 +180,9 @@ export default async function NewLogPage({
              id="content" name="content" rows={4} maxLength={2000} placeholder="详细描述你观察到的全过程，AI将以此为基准进行演化推演。"
              className="w-full rounded-2xl border-2 border-white/10 bg-black/20 px-6 py-4 text-base focus:border-primary/50 focus:bg-black/40 focus:outline-none transition-all shadow-inner placeholder:text-muted-foreground/30 resize-y min-h-[140px] custom-scrollbar"
            />
+
+        {/* --- 观测影像上传 --- */}
+        <ImageUploader colonyId={id} />
         </div>
 
         {/* --- 发育阶段 --- */}

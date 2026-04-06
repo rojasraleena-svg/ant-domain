@@ -113,6 +113,7 @@ export async function POST(
       humidity,
       abnormalType,
       abnormalDetail,
+      images,
     } = body
 
     if (!date) {
@@ -153,6 +154,7 @@ export async function POST(
         humidity: humidity ? parseFloat(humidity) : null,
         abnormal_type: abnormalType || null,
         abnormal_detail: abnormalDetail || null,
+        images: images && images.length > 0 ? images : null,
       })
       .select()
       .single()

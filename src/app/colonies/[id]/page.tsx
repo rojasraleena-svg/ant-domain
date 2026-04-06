@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { generateColonyAdvice } from "@/lib/ai";
 import { getStageLabel, getAbnormalLabel } from "@/lib/labels";
 import { DeleteColonyButton } from "../components/DeleteColonyButton";
+import { LogImageGallery } from "@/components/log-image-gallery";
 
 export default async function ColonyDetailPage({
   params,
@@ -32,6 +33,19 @@ export default async function ColonyDetailPage({
     .eq("colony_id", parseInt(id))
     .order("date", { ascending: false })
     .limit(10);
+
+  // 检查是否有任何日志包含图片
+  const hasAnyImages =
+    logs && logs.some((l) => l.images && Array.isArray(l.images) && l.images.length > 0);
+
+  // 收集所有有图片的日志（用于画廊展示）
+  const logsWithImages = (logs ?? [])
+    .filter((l) => l.images && Array.isArray(l.images) && l.images.length > 0)
+    .map((l) => ({
+      date: new Date(l.date).toLocaleDateString("zh-CN").replace(/\//g, "."),
+      title: l.title,
+      images: l.images as { url: string }[],
+    }));
 
   // AI 建议（实时生成）
   let advice: string[] = [];
@@ -157,15 +171,30 @@ export default async function ColonyDetailPage({
           </div>
         </Link>
         
-        <button className="col-span-2 sm:col-span-1 group relative rounded-2xl bg-card/10 border border-white/5 p-6 overflow-hidden transition-all duration-500 hover:bg-card/20 hover:border-white/10 opacity-60 cursor-not-allowed">
+        {hasAnyImages ? (
+          <Link
+            href="#log-gallery"
+            className="col-span-2 sm:col-span-1 group relative rounded-2xl bg-primary/10 border border-primary/20 p-6 overflow-hidden transition-all duration-500 hover:bg-primary/20 hover:border-primary/40"
+          >
+            <div className="relative z-10 flex flex-col h-full justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary mb-3">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+              </div>
+              <h3 className="text-sm font-bold text-primary mb-1">影像归档</h3>
+              <p className="text-[10px] text-primary/60 uppercase tracking-widest">{logsWithImages.reduce((sum, l) => sum + l.images.length, 0)} 张影像</p>
+            </div>
+          </Link>
+        ) : (
+        <div className="col-span-2 sm:col-span-1 group relative rounded-2xl bg-card/10 border border-white/5 p-6 overflow-hidden transition-all duration-500 opacity-50">
            <div className="relative z-10 flex flex-col h-full justify-center">
              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-muted-foreground mb-3">
                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
              </div>
              <h3 className="text-sm font-bold text-foreground/70 mb-1">影像归档</h3>
-             <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">MODULE OFFLINE</p>
+             <p className="text-[10px] text-muted-foreground/50 uppercase tracking-widest">暂无影像</p>
            </div>
-        </button>
+        </div>
+        )}
       </div>
 
       {/* 核心数据区 */}
@@ -270,6 +299,21 @@ export default async function ColonyDetailPage({
                        </div>
                     </div>
                     <h4 className="text-sm font-bold text-foreground/90 group-hover:text-primary transition-colors">{log.title}</h4>
+                    {log.images && Array.isArray(log.images) && log.images.length > 0 && (
+                      <div className="mt-2 rounded-lg overflow-hidden bg-black/30">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={log.images[0].url}
+                          alt=""
+                          className="w-full h-16 object-cover"
+                        />
+                        {log.images.length > 1 && (
+                          <span className="absolute bottom-1 right-1 text-[9px] font-mono bg-black/60 text-white/70 px-1.5 rounded">
+                            +{log.images.length - 1}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -277,6 +321,24 @@ export default async function ColonyDetailPage({
           </div>
         </section>
       </div>
+
+      {/* 影像归档画廊 */}
+      {logsWithImages.length > 0 && (
+        <section id="log-gallery" className="mt-10 space-y-6">
+          <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+            <span className="w-1 h-6 rounded-full bg-gradient-to-b from-primary to-nature-green shadow-[0_0_10px_rgba(255,100,50,0.3)]" />
+            观测影像档案
+          </h2>
+          {logsWithImages.map((log) => (
+            <LogImageGallery
+              key={log.date + log.title}
+              images={log.images}
+              logDate={log.date}
+              logTitle={log.title}
+            />
+          ))}
+        </section>
+      )}
     </div>
   );
 }

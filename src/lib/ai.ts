@@ -10,6 +10,16 @@ const client = new Anthropic({
   baseURL: process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com",
 });
 
+/** 日志图片（用于 AI 视觉分析） */
+export interface LogImageInput {
+  /** 公开 URL（Supabase Storage） */
+  url: string;
+  /** Base64 编码的图片数据（服务端填充） */
+  base64Data?: string;
+  /** 媒体类型，如 image/jpeg */
+  mediaType?: "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+}
+
 /** 日志摘要请求参数 */
 export interface SummarizeLogInput {
   /** 蚁群名称 */
@@ -35,6 +45,8 @@ export interface SummarizeLogInput {
   humidity?: number | null;
   /** 异常情况 */
   abnormalType?: string | null;
+  /** 附带的观测影像（多模态分析） */
+  images?: LogImageInput[];
 }
 
 /** 日志摘要结果 */
@@ -64,6 +76,11 @@ export async function summarizeLog(
 3. **风险检测**：如果发现异常情况（死亡、逃逸、病害、长期不产卵、停止进食等），给出风险提示；如果正常则不输出此项
 4. **下一步建议**：给出1-2条具体的、可操作的建议
 
+${input.images && input.images.length > 0 ? `当用户附带观测图片时，你需要：
+- 描述图片中可见的关键视觉信息（蚁群规模估计、幼体状态、环境条件）
+- 将视觉观察与文字记录交叉验证，指出一致或矛盾之处
+- 如果图片模糊或无法识别，明确说明` : ""}
+
 回复格式要求：
 - 使用中文
 - 摘要控制在30字以内
@@ -74,11 +91,42 @@ export async function summarizeLog(
 
   const userMessage = formatLogForAI(input);
 
+  // 构建多模态 content：文本 + 图片
+  const contentParts: Array<
+    | { type: "text"; text: string }
+    | { type: "image"; source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/webp" | "image/gif"; data: string } }
+  > = [];
+
+  // 始终添加文本内容
+  contentParts.push({ type: "text", text: userMessage });
+
+  // 添加图片 blocks（如果有 base64 数据）
+  if (input.images && input.images.length > 0) {
+    for (const img of input.images) {
+      if (img.base64Data && img.mediaType) {
+        contentParts.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: img.mediaType,
+            data: img.base64Data,
+          },
+        });
+      }
+    }
+
+    // 追加图片上下文提示
+    contentParts.push({
+      type: "text",
+      text: "\n\n以上是本次观测的图片资料，请结合图片内容进行视觉分析（如：蚁群状态、幼体发育情况、巢内环境等）。",
+    });
+  }
+
   const response = await client.messages.create({
     model: process.env.ANTHROPIC_MODEL || "glm-5v-turbo",
-    max_tokens: 500,
+    max_tokens: input.images && input.images.length > 0 ? 600 : 500,
     system: [{ type: "text", text: systemPrompt }],
-    messages: [{ role: "user", content: userMessage }],
+    messages: [{ role: "user", content: contentParts.length > 1 ? contentParts : userMessage }],
   });
 
   const text = response.content[0].type === "text" ? response.content[0].text : "";
@@ -201,6 +249,27 @@ export async function generateColonyAdvice(
 // ============================================
 // 内部工具函数
 // ============================================
+
+/**
+ * 从公开 URL 获取图片并转为 base64（服务端调用，无 CORS 问题）
+ * 用于将 Supabase Storage URL 传给多模态 AI 模型
+ */
+export async function fetchImageAsBase64(
+  url: string
+): Promise<{ base64Data: string; mediaType: string } | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const buffer = await res.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString("base64");
+
+    return { base64Data: base64, mediaType: contentType };
+  } catch {
+    return null;
+  }
+}
 
 function formatLogForAI(input: SummarizeLogInput): string {
   const parts = [
