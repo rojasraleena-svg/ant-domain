@@ -107,6 +107,9 @@ GET /api/colonies/:id/logs
       "larvaStatus": "many",
       "pupaStatus": "few",
       "feedingRecord": "糖水 + 面包虫",
+      "images": [
+        { "url": "https://xxx.supabase.co/.../photo.jpg", "path": "user-abc/42/logs/photo.jpg" }
+      ],
       "aiSummary": "蚁群状态良好",
       "createdAt": "2024-06-01T12:00:00.000Z"
     }
@@ -159,9 +162,62 @@ POST /api/colonies/:id/logs
   "eggStatus": "many",
   "larvaStatus": "abundant",
   "pupaStatus": "many",
-  "feedingRecord": "1:10 糖水"
+  "feedingRecord": "1:10 糖水",
+  "images": [
+    { "url": "https://xxx.supabase.co/storage/v1/object/public/colony-images/user-abc/42/logs/1234567890_a1b2c3d4.jpg", "path": "user-abc/42/logs/1234567890_a1b2c3d4.jpg" }
+  ]
 }
 ```
+
+> **注意**：`images` 字段为可选数组，每项包含 `url`（公开访问地址）和 `path`（Storage 路径，用于删除）。附带图片时 AI 分析会自动进行视觉分析。
+
+### 上传观测图片
+
+```
+POST /api/upload-image
+```
+
+**Content-Type**: `multipart/form-data`
+
+**请求参数**
+
+| 参数 | 类型 | 描述 |
+|------|------|------|
+| file | File | 图片文件（jpg/png/webp，单张 ≤5MB） |
+| colonyId | string | 目标蚁群 ID |
+
+**响应 (201)**
+
+```json
+{
+  "url": "https://xxx.supabase.co/storage/v1/object/public/colony-images/user-abc/42/logs/1234567890_a1b2c3d4.jpg",
+  "path": "user-abc/42/logs/1234567890_a1b2c3d4.jpg"
+}
+```
+
+**使用流程**：先调用此接口上传图片获取 `url` + `path`，再将结果填入创建日志的 `images` 数组中。
+
+### 删除观测图片
+
+```
+DELETE /api/delete-image
+```
+
+**请求体**
+
+```json
+{
+  "path": "user-abc/42/logs/1234567890_a1b2c3d4.jpg"
+}
+```
+
+**响应 (200)**
+
+```json
+{ "success": true }
+```
+
+> **安全说明**：只能删除路径以自己 `userId` 开头的文件。
 
 ### 获取物种列表（公开）
 
