@@ -13,7 +13,6 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 interface AdminImage {
   id: number;
@@ -27,6 +26,7 @@ interface AdminImage {
   is_featured: boolean;
   created_at: string;
   species?: { name_cn: string; name_lat: string };
+  users?: { username: string };
 }
 
 const STYLE_MAP: Record<string, string> = {
@@ -69,40 +69,29 @@ export default function AdminImagesPage() {
   // 操作状态
   const [actionId, setActionId] = useState<number | null>(null);
 
-  const supabase = createClient();
-
   const fetchImages = useCallback(async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from("generated_images")
-        .select("*, species(name_cn, name_lat)", { count: "exact" })
-        .eq("status", 1)
-        .order("created_at", { ascending: false })
-        .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(PAGE_SIZE),
+      });
+      if (filterStyle !== "all") params.set("style", filterStyle);
+      if (searchQuery.trim()) params.set("search", searchQuery.trim());
 
-      if (filterStyle !== "all") {
-        query = query.eq("style", filterStyle);
-      }
+      const res = await fetch(`/api/admin/images?${params}`);
+      const data = await res.json();
 
-      if (searchQuery.trim()) {
-        // 搜索物种名或 prompt
-        query = query.or(
-          `prompt.ilike.%${searchQuery.trim()}%,species.name_cn.ilike.%${searchQuery.trim()}%`
-        );
-      }
+      if (!res.ok) throw new Error(data.error);
 
-      const { data, count, error } = await query;
-
-      if (error) throw error;
-      setImages((data || []) as AdminImage[]);
-      setTotal(count || 0);
+      setImages((data.images || []) as AdminImage[]);
+      setTotal(data.total || 0);
     } catch {
       // 静默失败
     } finally {
       setLoading(false);
     }
-  }, [page, filterStyle, searchQuery, supabase]);
+  }, [page, filterStyle, searchQuery]);
 
   useEffect(() => {
     fetchImages();
@@ -111,12 +100,13 @@ export default function AdminImagesPage() {
   const handleToggleFeatured = async (img: AdminImage) => {
     setActionId(img.id);
     try {
-      const { error } = await supabase
-        .from("generated_images")
-        .update({ is_featured: !img.is_featured })
-        .eq("id", img.id);
+      const res = await fetch("/api/admin/images", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: img.id, is_featured: !img.is_featured }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error();
 
       setImages((prev) =>
         prev.map((i) =>
@@ -139,12 +129,13 @@ export default function AdminImagesPage() {
 
     setActionId(img.id);
     try {
-      const { error } = await supabase
-        .from("generated_images")
-        .update({ status: 0 })
-        .eq("id", img.id);
+      const res = await fetch("/api/admin/images", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: img.id, status: 0 }),
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error();
 
       setImages((prev) => prev.filter((i) => i.id !== img.id));
       setSelectedImage(null);

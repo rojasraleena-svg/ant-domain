@@ -10,6 +10,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+/** 上海时区偏移（UTC+8） */
+const SHANGHAI_OFFSET = 8 * 60 * 60 * 1000;
+
+function toShanghaiTime(dateStr: string): Date {
+  const d = new Date(dateStr);
+  return new Date(d.getTime() + SHANGHAI_OFFSET + d.getTimezoneOffset() * 60 * 1000);
+}
+
 async function getDashboardData() {
   // 基础统计
   const [speciesRes, usersRes, imagesRes] = await Promise.all([
@@ -21,25 +29,37 @@ async function getDashboardData() {
       .eq("status", 1),
   ]);
 
-  // 用户详情列表（分步查询，避免 RLS 联合查询问题）
+  // 用户详情列表
   const { data: users } = await db
     .from("users")
     .select("id, username, role, created_at")
     .order("created_at", { ascending: false });
 
-  // 各用户的蚁群数（单独查询）
+  // 各用户的蚁群数
   const userIds = (users || []).map((u) => u.id);
   const colonyCounts: Record<string, number> = {};
-
   if (userIds.length > 0) {
     const { data: colonies } = await db
       .from("colonies")
       .select("user_id")
       .in("user_id", userIds);
-
     for (const c of colonies || []) {
       const uid = c.user_id as string;
       colonyCounts[uid] = (colonyCounts[uid] || 0) + 1;
+    }
+  }
+
+  // 各用户的生图数
+  const imageCounts: Record<string, number> = {};
+  if (userIds.length > 0) {
+    const { data: imgs } = await db
+      .from("generated_images")
+      .select("created_by")
+      .in("created_by", userIds)
+      .eq("status", 1);
+    for (const img of imgs || []) {
+      const uid = img.created_by as string;
+      if (uid) imageCounts[uid] = (imageCounts[uid] || 0) + 1;
     }
   }
 
@@ -60,14 +80,14 @@ async function getDashboardData() {
     users: (users || []).map((u) => ({
       ...u,
       colonyCount: colonyCounts[u.id] || 0,
+      imageCount: imageCounts[u.id] || 0,
     })),
     recentImages: recentImages || [],
   };
 }
 
 const ROLE_STYLES: Record<string, string> = {
-  admin:
-    "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  admin: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
   user: "bg-muted/50 text-muted-foreground border-white/[0.06]",
 };
 
@@ -79,9 +99,10 @@ const ROLE_LABELS: Record<string, string> = {
 export default async function AdminDashboardPage() {
   const data = await getDashboardData();
 
+  /** 格式化为上海时间的相对时间 */
   const formatTime = (dateStr: string) => {
-    const d = new Date(dateStr);
-    const now = new Date();
+    const d = toShanghaiTime(dateStr);
+    const now = new Date(Date.now() + SHANGHAI_OFFSET);
     const diffMs = now.getTime() - d.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
@@ -89,7 +110,17 @@ export default async function AdminDashboardPage() {
     if (diffDays === 1) return "昨天";
     if (diffDays < 7) return `${diffDays} 天前`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} 周前`;
-    return d.toLocaleDateString("zh-CN");
+
+    // 超过 30 天显示上海时区的具体日期
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
+  };
+
+  /** 格式化上海时间完整日期时间 */
+  const formatDateTime = (dateStr: string) => {
+    const d = toShanghaiTime(dateStr);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
   return (
@@ -177,8 +208,8 @@ export default async function AdminDashboardPage() {
               <div className="col-span-3">用户名</div>
               <div className="col-span-2">角色</div>
               <div className="col-span-3">注册时间</div>
-              <div className="col-span-2 text-right">蚁群数</div>
-              <div className="col-span-2"></div>
+              <div className="col-span-2 text-right">蚁群</div>
+              <div className="col-span-2 text-right">生图</div>
             </div>
 
             {/* 表格行 */}
@@ -211,12 +242,12 @@ export default async function AdminDashboardPage() {
                   </span>
                 </div>
 
-                {/* 注册时间 */}
+                {/* 注册时间 — 上海时间 */}
                 <div className="sm:col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="w-3.5 h-3.5 shrink-0 opacity-50" />
                   <span>{formatTime(user.created_at)}</span>
                   <span className="text-[11px] opacity-50 hidden lg:inline">
-                    ({new Date(user.created_at).toLocaleDateString("zh-CN")})
+                    ({formatDateTime(user.created_at)})
                   </span>
                 </div>
 
@@ -228,9 +259,12 @@ export default async function AdminDashboardPage() {
                   <span className="text-[11px] text-muted-foreground ml-1">个</span>
                 </div>
 
-                {/* 操作占位 */}
-                <div className="sm:col-span-2 hidden sm:flex justify-end">
-                  {/* 未来可扩展：查看详情、改角色等 */}
+                {/* 生图数 */}
+                <div className="sm:col-span-2 text-right">
+                  <span className={`text-sm font-medium tabular-nums ${user.imageCount > 0 ? "text-purple-400" : ""}`}>
+                    {user.imageCount.toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground ml-1">张</span>
                 </div>
               </div>
             ))}
@@ -270,6 +304,11 @@ export default async function AdminDashboardPage() {
               } | null;
               const creator = (Array.isArray(img.users) ? img.users[0] : img.users) as { username: string } | null;
 
+              // 图片创建时间也用上海时间
+              const imgDate = toShanghaiTime(img.created_at);
+              const pad = (n: number) => String(n).padStart(2, "0");
+              const dateLabel = `${imgDate.getMonth() + 1}/${imgDate.getDate()} ${pad(imgDate.getHours())}:${pad(imgDate.getMinutes())}`;
+
               return (
                 <div
                   key={img.id}
@@ -287,9 +326,7 @@ export default async function AdminDashboardPage() {
                     </p>
                     <p className="text-[9px] text-white/60 flex items-center gap-1">
                       {creator && <span>by {creator.username}</span>}
-                      <span className="ml-auto">
-                        {new Date(img.created_at).toLocaleDateString("zh-CN")}
-                      </span>
+                      <span className="ml-auto">{dateLabel}</span>
                     </p>
                   </div>
                 </div>
