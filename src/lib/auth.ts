@@ -12,6 +12,7 @@ const JWT_SECRET = new TextEncoder().encode(
 export interface SessionUser {
   id: string;
   username: string;
+  role?: string;
 }
 
 // 密码哈希
@@ -29,7 +30,7 @@ export async function verifyPassword(
 
 // 生成 JWT
 export async function signToken(user: SessionUser): Promise<string> {
-  return new SignJWT({ id: user.id, username: user.username })
+  return new SignJWT({ id: user.id, username: user.username, role: user.role || "user" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
@@ -42,7 +43,11 @@ export async function verifyToken(
 ): Promise<SessionUser | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return { id: payload.id as string, username: payload.username as string };
+    return {
+      id: payload.id as string,
+      username: payload.username as string,
+      role: (payload.role as string) || "user",
+    };
   } catch {
     return null;
   }

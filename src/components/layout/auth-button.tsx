@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Shield } from "lucide-react";
 
 export function AuthButton() {
-  const [user, setUser] = useState<{ username: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; role?: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,8 +54,22 @@ export function AuthButton() {
         USER/ <span className="font-bold text-foreground ml-1 group-hover:text-primary transition-colors">{user.username}</span>
       </div>
       <div className="w-px h-3 bg-white/20"></div>
-      <Link 
-        href="/settings" 
+
+      {/* 管理员入口 */}
+      {user.role === "admin" && (
+        <Link
+          href="/admin"
+          className="flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-medium text-primary hover:bg-primary/20 transition-colors"
+        >
+          <Shield className="w-3 h-3" />
+          管理后台
+        </Link>
+      )}
+
+      {user.role === "admin" && <div className="w-px h-3 bg-white/20"></div>}
+
+      <Link
+        href="/settings"
         className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-foreground/50 uppercase transition-all duration-500 hover:text-foreground relative group"
       >
         设置

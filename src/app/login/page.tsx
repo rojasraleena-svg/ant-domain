@@ -27,12 +27,15 @@ function AntDecorative() {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ msg?: string }>;
+  searchParams: Promise<{ msg?: string; redirect?: string }>;
 }) {
   const user = await getSession();
-  if (user) redirect("/colonies");
+  if (user) {
+    const { redirect: redirectTo } = await searchParams;
+    redirect(redirectTo || "/colonies");
+  }
 
-  const { msg } = await searchParams;
+  const { msg, redirect: redirectTo } = await searchParams;
   const message = msg ? LOGIN_MESSAGES[msg] : undefined;
   const isSuccess = msg === "registered";
 
@@ -97,7 +100,7 @@ export default async function LoginPage({
 
               const { data: user, error } = await db
                 .from("users")
-                .select("id, username, password_hash")
+                .select("id, username, password_hash, role")
                 .eq("username", username)
                 .single();
 
@@ -120,12 +123,16 @@ export default async function LoginPage({
                 redirect("/login?msg=login_failed");
               }
 
-              const token = await signToken({ id: user.id, username: user.username });
+              const token = await signToken({ id: user.id, username: user.username, role: user.role || "user" });
               await setAuthCookie(token);
-              redirect("/colonies");
+              const targetRedirect = formData.get("redirect") as string | null;
+              redirect(targetRedirect || "/colonies");
             }}
             className="space-y-5"
           >
+            {redirectTo && (
+              <input type="hidden" name="redirect" value={redirectTo} />
+            )}
             <div>
               <label
                 htmlFor="username"
