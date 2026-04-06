@@ -21,11 +21,27 @@ async function getDashboardData() {
       .eq("status", 1),
   ]);
 
-  // 用户详情列表（含蚁群数量）
+  // 用户详情列表（分步查询，避免 RLS 联合查询问题）
   const { data: users } = await db
     .from("users")
-    .select("id, username, role, created_at, colonies(count)")
+    .select("id, username, role, created_at")
     .order("created_at", { ascending: false });
+
+  // 各用户的蚁群数（单独查询）
+  const userIds = (users || []).map((u) => u.id);
+  const colonyCounts: Record<string, number> = {};
+
+  if (userIds.length > 0) {
+    const { data: colonies } = await db
+      .from("colonies")
+      .select("user_id")
+      .in("user_id", userIds);
+
+    for (const c of colonies || []) {
+      const uid = c.user_id as string;
+      colonyCounts[uid] = (colonyCounts[uid] || 0) + 1;
+    }
+  }
 
   // 最近生成的图片
   const { data: recentImages } = await db
@@ -41,13 +57,10 @@ async function getDashboardData() {
     speciesCount: speciesRes.count || 0,
     usersCount: usersRes.count || 0,
     imagesCount: imagesRes.count || 0,
-    users: (users || []) as Array<{
-      id: string;
-      username: string;
-      role: string;
-      created_at: string;
-      colonies: { count: number }[];
-    }>,
+    users: (users || []).map((u) => ({
+      ...u,
+      colonyCount: colonyCounts[u.id] || 0,
+    })),
     recentImages: recentImages || [],
   };
 }
@@ -210,7 +223,7 @@ export default async function AdminDashboardPage() {
                 {/* 蚁群数 */}
                 <div className="sm:col-span-2 text-right">
                   <span className="text-sm font-medium tabular-nums">
-                    {(user.colonies?.[0]?.count ?? 0).toLocaleString()}
+                    {user.colonyCount.toLocaleString()}
                   </span>
                   <span className="text-[11px] text-muted-foreground ml-1">个</span>
                 </div>

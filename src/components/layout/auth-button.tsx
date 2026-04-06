@@ -1,31 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { usePathname } from "next/navigation";
 import { Shield } from "lucide-react";
 
 export function AuthButton() {
   const [user, setUser] = useState<{ username: string; role?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        }
-      } catch {
-        // 未登录
+  const fetchUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
       }
+    } catch {
+      // 未登录
+      setUser(null);
+    } finally {
       setLoading(false);
-    };
-    checkAuth();
+    }
   }, []);
 
+  // 初始加载 + 路由变化时刷新
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser, pathname]);
+
+  // 监听登录/登出事件（供其他组件触发）
+  useEffect(() => {
+    const handleAuthChange = () => fetchUser();
+    window.addEventListener("auth:changed", handleAuthChange);
+    return () => window.removeEventListener("auth:changed", handleAuthChange);
+  }, [fetchUser]);
+
+  // 页面获得焦点时刷新（从其他标签页切回）
+  useEffect(() => {
+    const handleFocus = () => fetchUser();
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [fetchUser]);
+
   if (loading) {
-    return <div className="h-6 w-16 text-[10px] font-mono text-white/20 animate-pulse tracking-[0.2em] uppercase">Auth..</div>;
+    return (
+      <div className="h-6 w-16 text-[10px] font-mono text-white/20 animate-pulse tracking-[0.2em] uppercase">
+        Auth..
+      </div>
+    );
   }
 
   if (!user) {
@@ -36,7 +62,7 @@ export function AuthButton() {
           className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-foreground/50 uppercase transition-all duration-500 hover:text-foreground relative group"
         >
           登录
-          <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-500 group-hover:w-full"></span>
+          <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-500 group-hover:w-full" />
         </Link>
         <Link
           href="/register"
@@ -51,9 +77,12 @@ export function AuthButton() {
   return (
     <div className="flex items-center gap-4 lg:gap-6">
       <div className="flex items-center text-[10px] sm:text-[11px] font-medium tracking-[0.1em] text-foreground/50 uppercase group cursor-default">
-        USER/ <span className="font-bold text-foreground ml-1 group-hover:text-primary transition-colors">{user.username}</span>
+        USER/{" "}
+        <span className="font-bold text-foreground ml-1 group-hover:text-primary transition-colors">
+          {user.username}
+        </span>
       </div>
-      <div className="w-px h-3 bg-white/20"></div>
+      <div className="w-px h-3 bg-white/20" />
 
       {/* 管理员入口 */}
       {user.role === "admin" && (
@@ -66,19 +95,20 @@ export function AuthButton() {
         </Link>
       )}
 
-      {user.role === "admin" && <div className="w-px h-3 bg-white/20"></div>}
+      {user.role === "admin" && <div className="w-px h-3 bg-white/20" />}
 
       <Link
         href="/settings"
         className="text-[10px] sm:text-[11px] font-medium tracking-[0.2em] text-foreground/50 uppercase transition-all duration-500 hover:text-foreground relative group"
       >
         设置
-        <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-500 group-hover:w-full"></span>
+        <span className="absolute -bottom-1 left-0 w-0 h-px bg-white transition-all duration-500 group-hover:w-full" />
       </Link>
       <form
         className="flex"
         action={async () => {
           await fetch("/api/auth/logout", { method: "POST" });
+          window.dispatchEvent(new Event("auth:changed"));
           window.location.href = "/";
         }}
       >
