@@ -51,7 +51,7 @@ const CASTE_MAP: Record<string, string> = {
   male: "雄蚁",
 };
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 30;
 
 export default function AdminImagesPage() {
   const [images, setImages] = useState<AdminImage[]>([]);

@@ -4,6 +4,7 @@ import { getSpeciesById, getSpecimenImages } from "@/lib/public-data";
 import { getDietLabel, getNestTypeLabel } from "@/lib/labels";
 import { SpecimenImageGallery } from "@/components/specimen-image-gallery";
 import { ImageGenerator } from "@/components/image-generator";
+import { SpeciesAIGallery } from "@/components/species-ai-gallery";
 
 export async function generateMetadata({
   params,
@@ -92,6 +93,9 @@ export default async function SpeciesDetailPage({
 
       {/* 标本图像画廊 */}
       {images.length > 0 && <SpecimenImageGallery images={images} />}
+
+      {/* AI 插图展示 */}
+      <SpeciesAIGallery speciesId={sp.id} nameCn={sp.name_cn} nameLat={sp.name_lat} />
 
       {/* AI 插图生成 */}
       <section className="mb-8">

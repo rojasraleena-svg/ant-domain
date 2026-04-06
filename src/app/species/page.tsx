@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getAllSpecies, getSpeciesStats } from "@/lib/public-data";
 import { SpeciesSearch } from "./search-bar";
+import { GalleryLink } from "@/components/gallery-link";
 
 export const metadata = {
   title: "资料库",
@@ -213,6 +214,7 @@ export default async function SpeciesPage({
                       需要冬眠
                     </span>
                   )}
+                  <GalleryLink speciesId={sp.id} />
                 </div>
               </div>
             </Link>

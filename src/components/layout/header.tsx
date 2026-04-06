@@ -8,6 +8,7 @@ import { AuthButton } from "./auth-button";
 const navItems = [
   { href: "/", label: "首页" },
   { href: "/species", label: "资料库" },
+  { href: "/gallery", label: "插画馆" },
   { href: "/lifecycle", label: "生活史" },
   { href: "/colonies", label: "我的蚁群" },
 ];
